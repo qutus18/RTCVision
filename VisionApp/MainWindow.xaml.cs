@@ -23,7 +23,7 @@ namespace VisionApp
     public partial class MainWindow : Window
     {
         private StringValueObject strViewButton, logString;
-        private DimentionObject logPanelHeight;
+        private IntValueObject logPanelHeight, intSettingButtonStage;
         private Thread socketThread;
         private List<Socket> tcpListSocketConnect = new List<Socket>();
         private Server myServer;
@@ -136,7 +136,8 @@ namespace VisionApp
         private void DisplayInitial()
         {
             strViewButton = new StringValueObject("Show Log");
-            logPanelHeight = new DimentionObject(20);
+            logPanelHeight = new IntValueObject(20);
+            intSettingButtonStage = new IntValueObject(1);
             logString = new StringValueObject("\r\n");
             gridTotalMain.DataContext = logPanelHeight;
             btnViewLog.DataContext = strViewButton;
@@ -155,6 +156,34 @@ namespace VisionApp
         private void lblExit_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             this.Close();
+        }
+
+        private void BtnSettingSelect_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            //MessageBox.Show((sender as Button).Name.ToString());
+            switch ((sender as Button).Name)
+            {
+                case ("btnSettingCameraInitial"):
+                    MessageBox.Show((sender as Button).Name);
+                    wfSettingPanel.Child = null;
+                    break;
+                case ("btnSettingCalib"):
+                    if (cogCamera01.CalibGridCBTool != null) wfSettingPanel.Child = cogCamera01.CalibGridCBTool;
+                    break;
+                case ("btnSettingAlign"):
+                    if (cogCamera01.PMAlignTool != null) wfSettingPanel.Child = cogCamera01.PMAlignTool;
+                    break;
+                case ("btnSettingInspection"):
+                    MessageBox.Show((sender as Button).Name);
+                    wfSettingPanel.Child = null;
+                    break;
+                case ("btnSettingFinish"):
+                    MessageBox.Show((sender as Button).Name);
+                    wfSettingPanel.Child = null;
+                    break;
+                default:
+                    break;
+            }
         }
 
         /// <summary>

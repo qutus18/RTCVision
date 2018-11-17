@@ -25,6 +25,11 @@
         <Style x:Key="btnStyleDefault" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Template" Value="{StaticResource btnTemplateDefault}"/>
         </Style>
+        <Style x:Key="btnStyleSettingPanel" TargetType="{x:Type Button}">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
         <Style x:Key="gridCamStyle01" TargetType="{x:Type Grid}">
         </Style>
     </Window.Resources>
@@ -35,7 +40,7 @@
             <RowDefinition Height="{Binding Value, FallbackValue=20}"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" Background="#FF2E2E2E">
-            <Border BorderThickness="1" BorderBrush="Gray" Background="White">
+            <Border BorderThickness="1" BorderBrush="White" Background="White">
                 <Grid>
                     <Menu Background="White" Foreground="#FF1D1D1D" Padding="1" FontSize="13" FontWeight="Normal">
                         <MenuItem Header="File" VerticalContentAlignment="Center">
@@ -60,7 +65,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="8*"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="100*"/>
+                <ColumnDefinition Width="10000*"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
@@ -131,27 +136,36 @@
                     </StackPanel>
                 </Grid>
             </Grid>
-            <Grid Grid.Column="2">
+            <Grid Grid.Column="2" Background="#FF394261">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="5*"/>
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="4*"/>
-                    </Grid.RowDefinitions>
-                </Grid>
+                <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
+                    <Grid Margin="5, 15, 5, 20" Background="#FF394261">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="10"/>
+                            <RowDefinition Height="6*"/>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingCameraInitial" Content="Camera Initial"/>
+                        <Button Grid.Row="1" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingCalib" Content="Calibration"/>
+                        <Button Grid.Row="2" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingAlign" Content="Pattern Align"/>
+                        <Button Grid.Row="3" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingInspection" Content="Inspection"/>
+                        <Button Grid.Row="4" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingFinish" Content="Finish Setup"/>
+                        <Grid Grid.Row="6" Margin="15, 15, 15, 30" Background="WhiteSmoke"/>
+                    </Grid>
+                </Border>
                 <Grid Grid.Column="1">
                     <Border BorderBrush="Gray" BorderThickness="1">
                         <Grid Name="gridSetting" Style="{StaticResource gridCamStyle01}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
-                                <RowDefinition Height="20"/>
+                                <RowDefinition Height="0"/>
                             </Grid.RowDefinitions>
                             <WindowsFormsHost Grid.Row="0" x:Name="wfSettingPanel" Background="#FF9B9999"/>
                         </Grid>

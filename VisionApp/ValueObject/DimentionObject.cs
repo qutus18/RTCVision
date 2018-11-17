@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace VisionApp
 {
-    public class DimentionObject : ObservableObject
+    public class IntValueObject : ObservableObject
     {
         private int _value;
-        public DimentionObject()
+        public IntValueObject()
         {
             _value = 0;
         }
-        public DimentionObject(int settingValue)
+        public IntValueObject(int settingValue)
         {
             _value = settingValue;
         }
