@@ -1,0 +1,176 @@
+﻿<Window x:Class="VisionApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        xmlns:local="clr-namespace:VisionApp"
+        mc:Ignorable="d"
+        Title="RTC Align Tool" Height="850" Width="1300" WindowStartupLocation="CenterScreen" Background="#FF4D4D4D" WindowState="Maximized">
+    <Window.Resources>
+        <ControlTemplate x:Key="cameraViewTemplate01" TargetType="ContentControl">
+            <Grid>
+                <TextBlock Text="123"/>
+            </Grid>
+        </ControlTemplate>
+        <ControlTemplate x:Key="btnTemplateDefault" TargetType="{x:Type Button}">
+            <Grid>
+                <Border BorderThickness="0.6" BorderBrush="#FFDEDEDE">
+                    <Rectangle Fill="#FF151515" Height="30"></Rectangle>
+                </Border>
+                <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.Foreground="White" TextBlock.FontFamily="Open Sans"
+                                  TextBlock.FontWeight="Bold" TextBlock.FontSize="11.5"/>
+            </Grid>
+        </ControlTemplate>
+        <Style x:Key="btnStyleDefault" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Template" Value="{StaticResource btnTemplateDefault}"/>
+        </Style>
+        <Style x:Key="gridCamStyle01" TargetType="{x:Type Grid}">
+        </Style>
+    </Window.Resources>
+    <Grid Name="gridTotalMain">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="{Binding Value, FallbackValue=20}"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Background="#FF2E2E2E">
+            <Border BorderThickness="1" BorderBrush="Gray" Background="White">
+                <Grid>
+                    <Menu Background="White" Foreground="#FF1D1D1D" Padding="1" FontSize="13" FontWeight="Normal">
+                        <MenuItem Header="File" VerticalContentAlignment="Center">
+                            <!--<MenuItem.Icon>
+                            <Image Source="/VisionApp;component/Icon/engineer_icon_001.png" VerticalAlignment="Center"/>
+                        </MenuItem.Icon>-->
+                            <MenuItem Header="Load" Background="White"/>
+                            <MenuItem Header="Exit" Name="btnMenuExit" PreviewMouseDown="btnMenuExit_PreviewMouseDown" Background="White"/>
+                        </MenuItem>
+                        <MenuItem Header="Options">
+                            <MenuItem Header="Settings" Background="White"/>
+                        </MenuItem>
+                        <MenuItem Header="About">
+                            <MenuItem Header="Info" Background="White"/>
+                        </MenuItem>
+                    </Menu>
+                    <!--<Label Name="lblExit" PreviewMouseDown="lblExit_PreviewMouseDown" Content="X" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="4"  FontWeight="Bold"/>-->
+                </Grid>
+            </Border>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="100*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!--Hiển thị Camera 1-->
+                    <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
+                        <Grid Name="gridCam01" Style="{StaticResource gridCamStyle01}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="0"/>
+                            </Grid.RowDefinitions>
+                            <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain1" Background="#FF9B9999"/>
+                        </Grid>
+                    </Border>
+                    <!--Hiển thị Camera 2-->
+                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1">
+                        <Grid Name="gridCam02" Style="{StaticResource gridCamStyle01}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="0"/>
+                            </Grid.RowDefinitions>
+                            <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain2" Background="#FF9B9999"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!--Hiển thị Camera 3-->
+                    <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
+                        <Grid Name="gridCam03" Style="{StaticResource gridCamStyle01}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="0"/>
+                            </Grid.RowDefinitions>
+                            <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain3" Background="#FF9B9999"/>
+                        </Grid>
+                    </Border>
+                    <!--Hiển thị Camera 4-->
+                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1">
+                        <Grid Name="gridCam04" Style="{StaticResource gridCamStyle01}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="0"/>
+                            </Grid.RowDefinitions>
+                            <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain4" Background="#FF9B9999"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid Background="White" HorizontalAlignment="Center" VerticalAlignment="Center" Height="250" MaxWidth="300" MinWidth="135">
+                    <StackPanel>
+                        <Button Content="Button 1"/>
+                        <Button Content="Button 1"/>
+                        <Button Content="Button 1"/>
+                        <Button Content="Button 1"/>
+                        <Button Content="Button 1"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+            <Grid Grid.Column="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="5*"/>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="4*"/>
+                    </Grid.RowDefinitions>
+                </Grid>
+                <Grid Grid.Column="1">
+                    <Border BorderBrush="Gray" BorderThickness="1">
+                        <Grid Name="gridSetting" Style="{StaticResource gridCamStyle01}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="0"/>
+                            </Grid.RowDefinitions>
+                            <WindowsFormsHost Grid.Row="0" x:Name="wfSettingPanel" Background="#FF9B9999"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Border BorderBrush="Gray" BorderThickness="1">
+                <Grid Background="#FF2E2E2E">
+                    <TextBox Name="txtLogBox" Text="{Binding Value}" Foreground="White" Background="Transparent" BorderThickness="0"
+                               ScrollViewer.VerticalScrollBarVisibility="Auto" VerticalAlignment="Bottom">
+                    </TextBox>
+                    <Button Name="btnViewLog" PreviewMouseDown="btnViewLog_PreviewMouseDown" Content="{Binding Value,TargetNullValue='Hide Log'}" 
+                            Width="80" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                            FontStyle="Italic" Background="Transparent" BorderThickness="1" Foreground="White">
+                    </Button>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

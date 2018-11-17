@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2048
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisionApp", "VisionApp\VisionApp.csproj", "{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Debug|x64.ActiveCfg = Debug|x64
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Debug|x64.Build.0 = Debug|x64
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Debug|x86.ActiveCfg = Debug|x86
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Debug|x86.Build.0 = Debug|x86
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Release|x64.ActiveCfg = Release|x64
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Release|x64.Build.0 = Release|x64
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Release|x86.ActiveCfg = Release|x86
+		{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {92853D57-667A-474B-86BD-1EB464D60D1F}
+	EndGlobalSection
+EndGlobal
