@@ -149,6 +149,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
                             <RowDefinition Height="10"/>
                             <RowDefinition Height="6*"/>
                         </Grid.RowDefinitions>
@@ -157,8 +158,9 @@
                         <Button Grid.Row="2" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingAlign" Content="Pattern Align"/>
                         <Button Grid.Row="3" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingInspection" Content="Inspection"/>
                         <Button Grid.Row="4" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingFinish" Content="Finish Setup"/>
-                        <Grid Grid.Row="6" Margin="15, 15, 15, 30" Background="WhiteSmoke"/>
-                    </Grid>
+                        <Button Grid.Row="5" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingSpare" Content="Spare Setup"/>
+                        <Grid Grid.Row="7" Margin="15, 15, 15, 10" Background="WhiteSmoke"/>
+                    </Grid> 
                 </Border>
                 <Grid Grid.Column="1">
                     <Border BorderBrush="Gray" BorderThickness="1">
