@@ -151,7 +151,7 @@
                         <Grid Name="gridSetting" Style="{StaticResource gridCamStyle01}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
-                                <RowDefinition Height="20"/>
+                                <RowDefinition Height="0"/>
                             </Grid.RowDefinitions>
                             <WindowsFormsHost Grid.Row="0" x:Name="wfSettingPanel" Background="#FF9B9999"/>
                         </Grid>
