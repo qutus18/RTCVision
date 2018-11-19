@@ -164,8 +164,8 @@ namespace VisionApp
             switch ((sender as Button).Name)
             {
                 case ("btnSettingCameraInitial"):
-                    MessageBox.Show((sender as Button).Name);
-                    wfSettingPanel.Child = null;
+                    //MessageBox.Show((sender as Button).Name);
+                    wfSettingPanel.Child = cogCamera01.AcqFifoTool;
                     break;
                 case ("btnSettingCalib"):
                     if (cogCamera01.CalibGridCBTool != null) wfSettingPanel.Child = cogCamera01.CalibGridCBTool;

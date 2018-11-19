@@ -23,6 +23,7 @@ namespace VisionApp
         private CogDisplay cogDisplayMain = null;
         private CogPMAlignEditV2 pmAlignTool = null;
         private CogCalibCheckerboardEditV2 calibGribCBTool = null;
+        private CogAcqFifoEditV2 acqFifoTool = null;
 
 
         public VisionJob()
@@ -35,25 +36,38 @@ namespace VisionApp
             imageFileEdit = new CogImageFileEditV2();
             imageFileEdit.Subject = imageFileTool;
 
+            // Thiết lập Camera đầu vào
+            acqFifoTool = new CogAcqFifoEditV2();
+            acqFifoTool.Subject = new CogAcqFifoTool();
+
+
             // Load thư viện ảnh mặc định
             cogDisplayMain = new CogDisplay();
             ImageFileTool.Operator.Open(@"C:\Program Files\Cognex\VisionPro\Images\CheckCal.idb", CogImageFileModeConstants.Read);
 
             // Link ảnh đầu ra với ảnh đầu vào
-            cogDisplayMain.DataBindings.Add("Image", ImageFileTool, "OutputImage", true);
-            //cogDisplayMain.Image.Changed += delegate { cogDisplayMain.Fit(); };
+            // Tắt tạm thời ảnh vào từ Imagefile
+            // Load ảnh trực tiếp từ Camera
+            //cogDisplayMain.DataBindings.Add("Image", ImageFileTool, "OutputImage", true);
+            cogDisplayMain.DataBindings.Add("Image", AcqFifoTool.Subject, "OutputImage", true);
 
             // Tool Align
             pmAlignTool = new CogPMAlignEditV2();
             pmAlignTool.Subject = new CogPMAlignTool();
-            pmAlignTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
+            //pmAlignTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
+            pmAlignTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
             pmAlignTool.Subject.Changed += UpdatePMAlignSubject;
 
             // Cấu hình Tool Calib
             calibGribCBTool = new CogCalibCheckerboardEditV2();
             calibGribCBTool.Subject = new CogCalibCheckerboardTool();
-            calibGribCBTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
+            // Sửa đầu vào Tool Calib
+            //calibGribCBTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
+            calibGribCBTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
+
             calibGribCBTool.Subject.Calibration.Changed += UpdateCalibImage;
+
+            // 
 
         }
 
@@ -93,6 +107,12 @@ namespace VisionApp
         {
             get { return calibGribCBTool; }
             set { calibGribCBTool = value; }
+        }
+
+        public CogAcqFifoEditV2 AcqFifoTool
+        {
+            get { return acqFifoTool; }
+            set { acqFifoTool = value; }
         }
 
 
@@ -171,14 +191,17 @@ namespace VisionApp
         /// <summary>
         /// Chạy lần lượt tất cả các Job
         /// Chuẩn bị Update: Chạy lần lượt Job theo Mode?
+        /// Hiện tại sử dụng đầu vào Camera
         /// </summary>
         /// <returns></returns>
         public string RunJob()
         {
+            string returnString = "";
             CogTransform2DLinear temp = null;
             if (toolBlockEdit.Subject != null) toolBlockEdit.Subject.Run();
             if (toolGroupEdit.Subject != null) toolGroupEdit.Subject.Run();
             if (ImageFileTool != null) ImageFileTool.Run();
+            if (acqFifoTool.Subject != null) acqFifoTool.Subject.Run();
             if (!calibGribCBTool.Subject.Calibration.Calibrated) MessageBox.Show("Image Not Calibration!!!");
             else calibGribCBTool.Subject.Run();
             if (pmAlignTool.Subject != null) pmAlignTool.Subject.Run();
@@ -188,7 +211,13 @@ namespace VisionApp
             }
             if (temp != null)
             {
-                return ($"X : {temp.TranslationX.ToString("0.00")} - Y : {temp.TranslationY.ToString("0.00")} - Angle : {(temp.Rotation * 180 / Math.PI).ToString("0.00")}");
+                foreach (var item in pmAlignTool.Subject.Results)
+                {
+                    temp = (item as CogPMAlignResult).GetPose();
+                    returnString += $"X : {temp.TranslationX.ToString("0.00")} - Y : {temp.TranslationY.ToString("0.00")} - Angle : {(temp.Rotation * 180 / Math.PI).ToString("0.00")}\r\n";
+                }
+                //return ($"X : {temp.TranslationX.ToString("0.00")} - Y : {temp.TranslationY.ToString("0.00")} - Angle : {(temp.Rotation * 180 / Math.PI).ToString("0.00")}");
+                return returnString;
             }
             return "Fail";
         }
