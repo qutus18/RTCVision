@@ -182,8 +182,10 @@
                             <Button Grid.Row="3" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingInspection" Content="Inspection"/>
                             <Button Grid.Row="4" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSaveJob" Content="Save Job"/>
                             <Button Grid.Row="5" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingFinish" Content="Finish Setup"/>
-                            <Grid Grid.Row="7" Margin="15, 15, 15, 10" Background="WhiteSmoke"/>
-                        </Grid>
+                            <Grid Grid.Row="7" Margin="15, 15, 15, 10" Background="WhiteSmoke">
+                                <Label Name="lblCameraInfo" Content="{Binding Value}" Background="WhiteSmoke" Foreground="Black" FontSize="13"/>
+                            </Grid>
+                            </Grid>
                     </Grid>
                 </Border>
                 <Grid Grid.Column="1">

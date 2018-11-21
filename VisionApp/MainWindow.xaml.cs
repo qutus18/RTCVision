@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms.Integration;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -32,6 +33,7 @@ namespace VisionApp
         private CameraIndex cameraIndex;
         private VisionJob[] listCameras = new VisionJob[4];
         private string currentJobUrl = @"E:\#Latus\JobRun\SVI_20182111_1136";
+        private StringValueObject settingDisplayCameraInfo;
 
         public MainWindow()
         {
@@ -59,11 +61,10 @@ namespace VisionApp
             // Load Job
             LoadCurrentJobInitial();
 
-            cogCamera01.PathToolBlock = @"E:\#Latus\PMAlignFixturingBlobRegionAndResults.vpp";
-            wfCogDisplayMain1.Child = cogCamera01.ToolGroupEdit;
-            wfCogDisplayMain2.Child = cogCamera01.ImageFileEdit;
-            wfCogDisplayMain3.Child = cogCamera01.CalibGridCBTool;
-            wfCogDisplayMain4.Child = cogCamera01.PMAlignTool;
+            wfCogDisplayMain1.Child = listCameras[0].CogDisplayMain;
+            wfCogDisplayMain2.Child = listCameras[1].CogDisplayMain;
+            wfCogDisplayMain3.Child = listCameras[2].CogDisplayMain;
+            wfCogDisplayMain4.Child = listCameras[3].CogDisplayMain;
             //cogCamera01.ToolBlockEdit.Subject.Ran += ShowResult;
         }
 
@@ -135,6 +136,23 @@ namespace VisionApp
         private async void ProcessClientCommand(string rev, Socket socket)
         {
             string tempS = $"Time: {DateTime.Now.ToLongTimeString()} - Receive cmd = {rev}, from client = {socket.RemoteEndPoint}\r\n";
+
+            // Kiểm tra Camera tương ứng
+            int tempCameraCmdIndex = -1;
+            string strTrig = "TriggerCamera";
+            if (rev.IndexOf(strTrig) >= 0)
+            {
+                try
+                {
+                    string tempGet = rev.Substring(rev.IndexOf(strTrig) + strTrig.Length, 1);
+                    tempCameraCmdIndex = int.Parse(tempGet);
+                }
+                catch
+                {
+                    tempCameraCmdIndex = -1;
+                }
+            }
+
             logString.Value = tempS + logString.Value;
             if (!isServerBusy)
             {
@@ -142,7 +160,11 @@ namespace VisionApp
                 // Bật cờ báo Busy và tắt ở cuối chu trình
                 isServerBusy = true;
                 // Chạy Job Camera tương ứng
-                tempSend = cogCamera01.RunJob();
+                if ((tempCameraCmdIndex > -1) && (tempCameraCmdIndex < 4)) tempSend = listCameras[tempCameraCmdIndex].RunJob();
+                else
+                {
+                    tempSend = "Error Cmd Camera!0";
+                }
                 tempSend = "camS_" + tempSend + "_camE\r\n";
                 byte[] bytesToSend = Encoding.UTF8.GetBytes(tempSend);
                 //await PutTaskDelay();
@@ -167,15 +189,38 @@ namespace VisionApp
             intSettingButtonStage = new IntValueObject(1);
             logString = new StringValueObject("\r\n");
             cameraIndex = new CameraIndex();
+            settingDisplayCameraInfo = new StringValueObject("");
 
+            // Cài đặt các giá trị Context Binding
+            // Chiều cao Box Log
             gridTotalMain.DataContext = logPanelHeight;
+            // Nút Hide/View Log
             btnViewLog.DataContext = strViewButton;
+            // Hộp hiển thị Log
             txtLogBox.DataContext = logString;
+            // Số thứ tự Camera Setting hiện tại
             lblCameraIndex.DataContext = cameraIndex;
+            // Cập nhật trạng thái Camera
+            lblCameraInfo.DataContext = settingDisplayCameraInfo;
 
             tab1Column.Width = new GridLength(10000, GridUnitType.Star);
             tab2Column.Width = new GridLength(1, GridUnitType.Star);
             tab3Column.Width = new GridLength(1, GridUnitType.Star);
+
+            // Mặc định hiển thị Tool Acq của Camera 0;
+            wfSettingPanel.ChildChanged += UpdateDislayCameraTool;
+            if (listCameras[0] != null) wfSettingPanel.Child = listCameras[0].AcqFifoTool;
+        }
+
+        /// <summary>
+        /// Cập nhật hiển thị khi thay đổi nội dung của hiển thị Setting (chuyển Tool Camera)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void UpdateDislayCameraTool(object sender, ChildChangedEventArgs e)
+        {
+            // Cập nhật hiển thị của Label Info
+            settingDisplayCameraInfo.Value = listCameras[cameraIndex.Value].GetInfo();
         }
 
         /// <summary>
