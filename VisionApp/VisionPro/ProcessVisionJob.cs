@@ -9,6 +9,8 @@ using Cognex.VisionPro.PMAlign;
 using Cognex.VisionPro.CalibFix;
 using System;
 using System.Windows;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace VisionApp
 {
@@ -24,6 +26,7 @@ namespace VisionApp
         private CogPMAlignEditV2 pmAlignTool = null;
         private CogCalibCheckerboardEditV2 calibGribCBTool = null;
         private CogAcqFifoEditV2 acqFifoTool = null;
+        private patternObject[] listPatterns = new patternObject[20];
 
 
         public VisionJob()
@@ -56,7 +59,6 @@ namespace VisionApp
             pmAlignTool.Subject = new CogPMAlignTool();
             //pmAlignTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
             pmAlignTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
-            pmAlignTool.Subject.Changed += UpdatePMAlignSubject;
 
             // Cấu hình Tool Calib
             calibGribCBTool = new CogCalibCheckerboardEditV2();
@@ -66,18 +68,14 @@ namespace VisionApp
             calibGribCBTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
 
             calibGribCBTool.Subject.Calibration.Changed += UpdateCalibImage;
+            pmAlignTool.SubjectChanged += UpdateCalibImage;
+            calibGribCBTool.SubjectChanged += UpdateImageSource;
 
             // 
 
         }
 
-        /// <summary>
-        /// Cập nhật khi Update Calib Image
-        /// Nếu chưa calib thì lấy ảnh từ Source, nếu đã calib thì lấy ảnh từ đầu ra calib
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void UpdateCalibImage(object sender, CogChangedEventArgs e)
+        private void UpdateCalibImage(object sender, EventArgs e)
         {
             if (calibGribCBTool.Subject.Calibration.Calibrated) // Nếu đã calib
             {
@@ -93,14 +91,12 @@ namespace VisionApp
             }
         }
 
-        /// <summary>
-        /// Update nguồn ảnh, khi thay đổi Subject của tool PMAlign
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void UpdatePMAlignSubject(object sender, CogChangedEventArgs e)
+        private void UpdateImageSource(object sender, EventArgs e)
         {
-            //pmAlignTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
+            if (calibGribCBTool.Subject.DataBindings.Contains("InputImage")) calibGribCBTool.Subject.DataBindings.Remove("InputImage");
+            calibGribCBTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
+
+            calibGribCBTool.Subject.Calibration.Changed += UpdateCalibImage;
         }
 
         public CogCalibCheckerboardEditV2 CalibGridCBTool
@@ -217,9 +213,60 @@ namespace VisionApp
                     returnString += $"X : {temp.TranslationX.ToString("0.00")} - Y : {temp.TranslationY.ToString("0.00")} - Angle : {(temp.Rotation * 180 / Math.PI).ToString("0.00")}\r\n";
                 }
                 //return ($"X : {temp.TranslationX.ToString("0.00")} - Y : {temp.TranslationY.ToString("0.00")} - Angle : {(temp.Rotation * 180 / Math.PI).ToString("0.00")}");
+
+                // Input pattern to Array
+                listPatterns = new patternObject[20];
+                for (int i = 0; i < listPatterns.Length; i++)
+                {
+                    listPatterns[i] = new patternObject();
+                }
+
+                int index = 0;
+                foreach (var item in PMAlignTool.Subject.Results)
+                {
+                    var tempResult = item as CogPMAlignResult;
+                    listPatterns[index] = new patternObject { X = tempResult.GetPose().TranslationX, Y = tempResult.GetPose().TranslationY, Angle = tempResult.GetPose().Rotation * 180 / Math.PI };
+                    index += 1;
+                }
+
+                listPatterns = ToolSupport.SortPatterns(listPatterns);
+
+                // In ra màn hình list Pattern
+                foreach (var item in listPatterns)
+                {
+                    Console.WriteLine($"X: {item.X} Y: {item.Y} Angle: {item.Angle}");
+                }
+
                 return returnString;
             }
+            
             return "Fail";
+        }
+
+        /// <summary>
+        /// Load CameraJob Form Url
+        /// </summary>
+        /// <param name="url"></param>
+        public void LoadJob(string url)
+        {
+            if (!File.Exists(url + "\\AqcTool.vpp")) return;
+            if (!File.Exists(url + "\\CalibTool.vpp")) return;
+            if (!File.Exists(url + "\\PMAlignTool.vpp")) return;
+            AcqFifoTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\AqcTool.vpp") as CogAcqFifoTool;
+            CalibGridCBTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\CalibTool.vpp") as CogCalibCheckerboardTool;
+            PMAlignTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\PMAlignTool.vpp") as CogPMAlignTool;
+        }
+
+        /// <summary>
+        /// Save CameraJob to Url
+        /// </summary>
+        /// <param name="url"></param>
+        public void SaveJob(string url)
+        {
+            CogSerializer.SaveObjectToFile(AcqFifoTool.Subject as CogAcqFifoTool, url + "\\AqcTool.vpp");
+            CogSerializer.SaveObjectToFile(CalibGridCBTool.Subject as CogCalibCheckerboardTool, url + "\\CalibTool.vpp");
+            CogSerializer.SaveObjectToFile(PMAlignTool.Subject as CogPMAlignTool, url + "\\PMAlignTool.vpp");
+            MessageBox.Show("Save Job Done! :)");
         }
     }
 }

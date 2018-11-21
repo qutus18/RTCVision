@@ -29,6 +29,9 @@ namespace VisionApp
         private Server myServer;
         private static Boolean isServerBusy = false;
         private VisionJob cogCamera01;
+        private CameraIndex cameraIndex;
+        private VisionJob[] listCameras = new VisionJob[4];
+        private string currentJobUrl = @"E:\#Latus\JobRun\SVI_20182111_1136";
 
         public MainWindow()
         {
@@ -37,6 +40,7 @@ namespace VisionApp
             DisplayInitial();
             // Khai bao Server TCP/IP
             VisionProInitial();
+            //
             SocketTCPInitial();
 
         }
@@ -47,12 +51,35 @@ namespace VisionApp
         private void VisionProInitial()
         {
             cogCamera01 = new VisionJob();
+            for (int i = 0; i < listCameras.Length; i++)
+            {
+                listCameras[i] = new VisionJob();
+            }
+
+            // Load Job
+            LoadCurrentJobInitial();
+
             cogCamera01.PathToolBlock = @"E:\#Latus\PMAlignFixturingBlobRegionAndResults.vpp";
             wfCogDisplayMain1.Child = cogCamera01.ToolGroupEdit;
             wfCogDisplayMain2.Child = cogCamera01.ImageFileEdit;
             wfCogDisplayMain3.Child = cogCamera01.CalibGridCBTool;
             wfCogDisplayMain4.Child = cogCamera01.PMAlignTool;
             //cogCamera01.ToolBlockEdit.Subject.Ran += ShowResult;
+        }
+
+        /// <summary>
+        /// Load lại chương trình các Camera theo đường dẫn lưu trong currentJobUrl
+        /// </summary>
+        private void LoadCurrentJobInitial()
+        {
+            try
+            {
+                for (int i = 0; i < listCameras.Length; i++)
+                {
+                    listCameras[i].LoadJob(currentJobUrl + $"\\Cam{i}");
+                }
+            }
+            catch { MessageBox.Show("Fail to Load Job! :("); }
         }
 
         private void ShowResult(object sender, EventArgs e)
@@ -139,9 +166,16 @@ namespace VisionApp
             logPanelHeight = new IntValueObject(20);
             intSettingButtonStage = new IntValueObject(1);
             logString = new StringValueObject("\r\n");
+            cameraIndex = new CameraIndex();
+
             gridTotalMain.DataContext = logPanelHeight;
             btnViewLog.DataContext = strViewButton;
             txtLogBox.DataContext = logString;
+            lblCameraIndex.DataContext = cameraIndex;
+
+            tab1Column.Width = new GridLength(10000, GridUnitType.Star);
+            tab2Column.Width = new GridLength(1, GridUnitType.Star);
+            tab3Column.Width = new GridLength(1, GridUnitType.Star);
         }
 
         /// <summary>
@@ -158,6 +192,80 @@ namespace VisionApp
             this.Close();
         }
 
+        private void MenuItemSetting_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            int value1 = 0;
+            int value2 = 0;
+            int value3 = 0;
+            switch ((sender as MenuItem).Header)
+            {
+                case "Running":
+                    value1 = 10; value2 = 0; value3 = 0;
+                    break;
+                case "StartUp":
+                    value1 = 0; value2 = 10; value3 = 0;
+                    break;
+                case "Initial":
+                    value1 = 0; value2 = 0; value3 = 10;
+                    break;
+                case "Settings":
+                    value1 = 0; value2 = 0; value3 = 10;
+                    break;
+                default:
+                    MessageBox.Show("Wrong Setting! Select Menu Switch");
+                    break;
+            }
+            tab1Column.Width = new GridLength(value1, GridUnitType.Star);
+            tab2Column.Width = new GridLength(value2, GridUnitType.Star);
+            tab3Column.Width = new GridLength(value3, GridUnitType.Star);
+        }
+
+        /// <summary>
+        /// Hiển thị control Tab tương ứng 0, 1, 2
+        /// </summary>
+        /// <param name="tabIndex"></param>
+        private void showControlTab(int tabIndex)
+        {
+            int value1 = 0;
+            int value2 = 0;
+            int value3 = 0;
+            switch (tabIndex)
+            {
+                case 0:
+                    value1 = 10; value2 = 0; value3 = 0;
+                    break;
+                case 1:
+                    value1 = 0; value2 = 10; value3 = 0;
+                    break;
+                case 2:
+                    value1 = 0; value2 = 0; value3 = 10;
+                    break;
+                default:
+                    MessageBox.Show("Wrong Setting! Select Menu Switch");
+                    break;
+            }
+            tab1Column.Width = new GridLength(value1, GridUnitType.Star);
+            tab2Column.Width = new GridLength(value2, GridUnitType.Star);
+            tab3Column.Width = new GridLength(value3, GridUnitType.Star);
+        }
+
+        private void LabelNextBackCamera_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if ((sender as Label).Content.ToString() == ">")
+            {
+                cameraIndex.Value += 1;
+                if (cameraIndex.Value == 4) cameraIndex.Value = 0;
+            }
+            else
+            {
+                cameraIndex.Value -= 1;
+                if (cameraIndex.Value == -1) cameraIndex.Value = 3;
+            }
+
+            // Load Default View
+            wfSettingPanel.Child = listCameras[cameraIndex.Value].AcqFifoTool;
+        }
+
         private void BtnSettingSelect_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             //MessageBox.Show((sender as Button).Name.ToString());
@@ -165,21 +273,27 @@ namespace VisionApp
             {
                 case ("btnSettingCameraInitial"):
                     //MessageBox.Show((sender as Button).Name);
-                    wfSettingPanel.Child = cogCamera01.AcqFifoTool;
+                    wfSettingPanel.Child = listCameras[cameraIndex.Value].AcqFifoTool;
                     break;
                 case ("btnSettingCalib"):
-                    if (cogCamera01.CalibGridCBTool != null) wfSettingPanel.Child = cogCamera01.CalibGridCBTool;
+                    if (listCameras[cameraIndex.Value].CalibGridCBTool != null) wfSettingPanel.Child = listCameras[cameraIndex.Value].CalibGridCBTool;
                     break;
                 case ("btnSettingAlign"):
-                    if (cogCamera01.PMAlignTool != null) wfSettingPanel.Child = cogCamera01.PMAlignTool;
+                    if (listCameras[cameraIndex.Value].PMAlignTool != null) wfSettingPanel.Child = listCameras[cameraIndex.Value].PMAlignTool;
                     break;
                 case ("btnSettingInspection"):
-                    MessageBox.Show((sender as Button).Name);
+                    //MessageBox.Show((sender as Button).Name);
                     wfSettingPanel.Child = null;
                     break;
                 case ("btnSettingFinish"):
-                    MessageBox.Show((sender as Button).Name);
+                    //Chuyển màn hình
+                    showControlTab(0);
+                    //MessageBox.Show((sender as Button).Name);
                     wfSettingPanel.Child = null;
+                    break;
+                case ("btnSaveJob"):
+                    // Lưu chương trình Camera hiện tại theo đường dẫn trong currentJobUrl
+                    listCameras[cameraIndex.Value].SaveJob(currentJobUrl + $"\\Cam{cameraIndex.Value}");
                     break;
                 default:
                     break;

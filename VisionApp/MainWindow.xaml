@@ -48,10 +48,14 @@
                             <Image Source="/VisionApp;component/Icon/engineer_icon_001.png" VerticalAlignment="Center"/>
                         </MenuItem.Icon>-->
                             <MenuItem Header="Load" Background="White"/>
+                            <MenuItem Header="Save" Background="White"/>
                             <MenuItem Header="Exit" Name="btnMenuExit" PreviewMouseDown="btnMenuExit_PreviewMouseDown" Background="White"/>
                         </MenuItem>
                         <MenuItem Header="Options">
-                            <MenuItem Header="Settings" Background="White"/>
+                            <MenuItem Header="Settings" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                            <MenuItem Header="Running" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                            <MenuItem Header="StartUp" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                            <MenuItem Header="Initial" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
                         </MenuItem>
                         <MenuItem Header="About">
                             <MenuItem Header="Info" Background="White"/>
@@ -63,9 +67,9 @@
         </Grid>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="8*"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="10000*"/>
+                <ColumnDefinition Name="tab1Column" Width="8*"/>
+                <ColumnDefinition Name="tab2Column" Width="*"/>
+                <ColumnDefinition Name="tab3Column" Width="10000*"/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
                 <Grid.RowDefinitions>
@@ -142,25 +146,45 @@
                     <ColumnDefinition Width="5*"/>
                 </Grid.ColumnDefinitions>
                 <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
-                    <Grid Margin="5, 15, 5, 20" Background="#FF394261">
+                    <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="75"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="10"/>
-                            <RowDefinition Height="6*"/>
                         </Grid.RowDefinitions>
-                        <Button Grid.Row="0" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingCameraInitial" Content="Camera Initial"/>
-                        <Button Grid.Row="1" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingCalib" Content="Calibration"/>
-                        <Button Grid.Row="2" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingAlign" Content="Pattern Align"/>
-                        <Button Grid.Row="3" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingInspection" Content="Inspection"/>
-                        <Button Grid.Row="4" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingFinish" Content="Finish Setup"/>
-                        <Button Grid.Row="5" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingSpare" Content="Spare Setup"/>
-                        <Grid Grid.Row="7" Margin="15, 15, 15, 10" Background="WhiteSmoke"/>
-                    </Grid> 
+                        <Border Margin="20,25,20,10" BorderBrush="White" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3*"/>
+                                    <ColumnDefinition Width="6*"/>
+                                    <ColumnDefinition Width="2*"/>
+                                    <ColumnDefinition Width="3*"/>
+                                </Grid.ColumnDefinitions>
+                                <Label Grid.Column="0" Content="&lt;" PreviewMouseDown="LabelNextBackCamera_PreviewMouseDown" FontSize="17" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                                <Label Margin="0,2,0,0" Grid.Column="1" Content="Camera " FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                                <Label Margin="0,2,0,0" Name="lblCameraIndex" Grid.Column="2" Content="{Binding Value}" FontSize="16" FontWeight="Bold" Foreground="White" HorizontalAlignment="Left"/>
+                                <Label Grid.Column="3" Content=">" PreviewMouseDown="LabelNextBackCamera_PreviewMouseDown" FontSize="17" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <Grid Grid.Row="1" Margin="5, 5, 5, 20" Background="#FF394261">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="5*"/>
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="0" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingCameraInitial" Content="Camera Initial"/>
+                            <Button Grid.Row="1" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingCalib" Content="Calibration"/>
+                            <Button Grid.Row="2" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingAlign" Content="Pattern Align"/>
+                            <Button Grid.Row="3" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingInspection" Content="Inspection"/>
+                            <Button Grid.Row="4" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSaveJob" Content="Save Job"/>
+                            <Button Grid.Row="5" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingFinish" Content="Finish Setup"/>
+                            <Grid Grid.Row="7" Margin="15, 15, 15, 10" Background="WhiteSmoke"/>
+                        </Grid>
+                    </Grid>
                 </Border>
                 <Grid Grid.Column="1">
                     <Border BorderBrush="Gray" BorderThickness="1">

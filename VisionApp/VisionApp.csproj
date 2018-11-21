@@ -142,6 +142,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Cognex\VisionPro\ReferencedAssemblies\Cognex.VisionPro.ToolGroup.Controls.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Windows.Forms" />
@@ -165,10 +166,14 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="SocketConnection\Server.cs" />
-    <Compile Include="ValueObject\DimentionObject.cs" />
+    <Compile Include="ValueObject\CameraIndex.cs" />
+    <Compile Include="ValueObject\IntValueObject.cs" />
     <Compile Include="ValueObject\ObservableObject.cs" />
     <Compile Include="ValueObject\StringValueObject.cs" />
+    <Compile Include="ValueObject\tabMainObject.cs" />
+    <Compile Include="VisionPro\patternObject.cs" />
     <Compile Include="VisionPro\ProcessVisionJob.cs" />
+    <Compile Include="VisionPro\ToolSupport.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
