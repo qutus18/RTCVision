@@ -9,13 +9,57 @@ using System.IO;
 
 namespace VisionApp
 {
-    public class VisionJob
+    public class VisionJob : ObservableObject
     {
+        // Khai báo đầu vào ảnh
         private CogImageFileEditV2 imageFileEdit = null;
-        private CogDisplay cogDisplayMain = null;
-        private CogPMAlignEditV2 pmAlignTool = null;
-        private CogCalibCheckerboardEditV2 calibGribCBTool = null;
+        /// <summary>
+        /// Trả về control ImageFileEdit tool
+        /// </summary>
+        public CogImageFileEditV2 ImageFileEdit
+        {
+            get { return imageFileEdit; }
+            set { imageFileEdit = value; }
+        }
         private CogAcqFifoEditV2 acqFifoTool = null;
+        /// <summary>
+        /// Trả về tool Acquition
+        /// </summary>
+        public CogAcqFifoEditV2 AcqFifoTool
+        {
+            get { return acqFifoTool; }
+            set { acqFifoTool = value; }
+        }
+        // Khai báo Tool Calib
+        private CogCalibCheckerboardEditV2 calibGribCBTool = null;
+        /// <summary>
+        /// Trả về tool Calib
+        /// </summary>
+        public CogCalibCheckerboardEditV2 CalibGridCBTool
+        {
+            get { return calibGribCBTool; }
+            set { calibGribCBTool = value; }
+        }
+        // Khai báo Tool Align
+        private CogPMAlignEditV2 pmAlignTool = null;
+        /// <summary>
+        /// Trả về tool PMAlign
+        /// </summary>
+        public CogPMAlignEditV2 PMAlignTool
+        {
+            get { return pmAlignTool; }
+            set { pmAlignTool = value; }
+        }
+        // Khai báo Tool Display
+        private CogDisplay cogDisplayMain = null;
+        /// <summary>
+        /// Trả về tool Display
+        /// </summary>
+        public CogDisplay CogDisplayMain
+        {
+            get { return cogDisplayMain; }
+            set { cogDisplayMain = value; }
+        }
         private patternObject[] listPatterns = new patternObject[20];
         private string lastSavedTime = "null";
 
@@ -189,6 +233,10 @@ namespace VisionApp
             lastSavedTime = DateTime.Now.ToLongDateString() + "-" + DateTime.Now.ToLongTimeString();
         }
 
+        /// <summary>
+        /// Cập nhật trạng thái Job trả về dạng String
+        /// </summary>
+        /// <returns></returns>
         public string GetInfo()
         {
             // Thông tin Calib
@@ -204,52 +252,6 @@ namespace VisionApp
             tempOutputString += "Last Saved : " + lastSavedTime + "\r\n";
 
             return tempOutputString;
-        }
-
-
-        /// <summary>
-        /// Trả về tool Calib
-        /// </summary>
-        public CogCalibCheckerboardEditV2 CalibGridCBTool
-        {
-            get { return calibGribCBTool; }
-            set { calibGribCBTool = value; }
-        }
-
-        /// <summary>
-        /// Trả về tool Acquition
-        /// </summary>
-        public CogAcqFifoEditV2 AcqFifoTool
-        {
-            get { return acqFifoTool; }
-            set { acqFifoTool = value; }
-        }
-
-        /// <summary>
-        /// Trả về tool PMAlign
-        /// </summary>
-        public CogPMAlignEditV2 PMAlignTool
-        {
-            get { return pmAlignTool; }
-            set { pmAlignTool = value; }
-        }
-
-        /// <summary>
-        /// Trả về tool Display
-        /// </summary>
-        public CogDisplay CogDisplayMain
-        {
-            get { return cogDisplayMain; }
-            set { cogDisplayMain = value; }
-        }
-
-        /// <summary>
-        /// Trả về control ImageFileEdit tool
-        /// </summary>
-        public CogImageFileEditV2 ImageFileEdit
-        {
-            get { return imageFileEdit; }
-            set { imageFileEdit = value; }
         }
     }
 }
