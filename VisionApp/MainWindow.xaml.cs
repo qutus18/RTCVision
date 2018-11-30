@@ -200,8 +200,6 @@ namespace VisionApp
             txtLogBox.DataContext = logString;
             // Số thứ tự Camera Setting hiện tại
             lblCameraIndex.DataContext = cameraIndex;
-            // Cập nhật trạng thái Camera
-            lblCameraInfo.DataContext = settingDisplayCameraInfo;
 
             tab1Column.Width = new GridLength(10000, GridUnitType.Star);
             tab2Column.Width = new GridLength(1, GridUnitType.Star);
