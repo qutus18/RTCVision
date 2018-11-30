@@ -12,23 +12,51 @@ namespace VisionApp
     public class VisionJob : ObservableObject
     {
         // Khai báo đầu vào ảnh
-        private CogImageFileEditV2 imageFileEdit = null;
+        private CogImageFileEditV2 cogImageFileTool = null;
         /// <summary>
         /// Trả về control ImageFileEdit tool
         /// </summary>
         public CogImageFileEditV2 ImageFileEdit
         {
-            get { return imageFileEdit; }
-            set { imageFileEdit = value; }
+            get { return cogImageFileTool; }
+            set { cogImageFileTool = value; }
         }
-        private CogAcqFifoEditV2 acqFifoTool = null;
+        private CogAcqFifoEditV2 cogAcqFifoEdit = null;
         /// <summary>
         /// Trả về tool Acquition
         /// </summary>
         public CogAcqFifoEditV2 AcqFifoTool
         {
-            get { return acqFifoTool; }
-            set { acqFifoTool = value; }
+            get { return cogAcqFifoEdit; }
+            set { cogAcqFifoEdit = value; }
+        }
+        // Image Input Mode : 0 - Camera, 1 - Imagefile
+        private int imageInputMode = 0;
+        public int ImageInputMode
+        {
+            get { return imageInputMode; }
+            set
+            {
+                imageInputMode = value;
+                OnPropertyChanged("ImageInputMode");
+                UpdateBindingInputImage();
+            }
+        }
+        public object ImageInputTool
+        {
+            get
+            {
+                switch (imageInputMode)
+                {
+                    case 0:
+                        return cogAcqFifoEdit;
+                    case 1:
+                        return cogImageFileTool;
+                    default:
+                        return cogAcqFifoEdit;
+                }
+            }
+            private set { }
         }
         // Khai báo Tool Calib
         private CogCalibCheckerboardEditV2 calibGribCBTool = null;
@@ -72,16 +100,16 @@ namespace VisionApp
         public VisionJob()
         {
             // Khai báo Tool đầu vào ảnh từ máy tính
-            imageFileEdit = new CogImageFileEditV2();
-            imageFileEdit.Subject = new CogImageFileTool();
+            cogImageFileTool = new CogImageFileEditV2();
+            cogImageFileTool.Subject = new CogImageFileTool();
 
             // Load thư viện ảnh mặc định
             cogDisplayMain = new CogDisplay();
-            imageFileEdit.Subject.Operator.Open(@"C:\Program Files\Cognex\VisionPro\Images\CheckCal.idb", CogImageFileModeConstants.Read);
+            cogImageFileTool.Subject.Operator.Open(@"C:\Program Files\Cognex\VisionPro\Images\CheckCal.idb", CogImageFileModeConstants.Read);
 
             // Thiết lập Camera đầu vào
-            acqFifoTool = new CogAcqFifoEditV2();
-            acqFifoTool.Subject = new CogAcqFifoTool();
+            cogAcqFifoEdit = new CogAcqFifoEditV2();
+            cogAcqFifoEdit.Subject = new CogAcqFifoTool();
 
             /// Link ảnh đầu ra với ảnh đầu vào
             /// => Cần update thành Link với đầu vào Tool Align
@@ -157,7 +185,7 @@ namespace VisionApp
             // Chạy lần lượt các Tool từ đầu xuống cuối
 
             if (ImageFileEdit.Subject != null) ImageFileEdit.Subject.Run();
-            if (acqFifoTool.Subject != null) acqFifoTool.Subject.Run();
+            if (cogAcqFifoEdit.Subject != null) cogAcqFifoEdit.Subject.Run();
             if (!calibGribCBTool.Subject.Calibration.Calibrated) MessageBox.Show("Image Not Calibration!!!");
             else calibGribCBTool.Subject.Run();
             if (pmAlignTool.Subject != null) pmAlignTool.Subject.Run();
@@ -252,6 +280,23 @@ namespace VisionApp
             tempOutputString += "Last Saved : " + lastSavedTime + "\r\n";
 
             return tempOutputString;
+        }
+
+        /// <summary>
+        /// Cập nhật nguồn ảnh cho tool Align khi Mode Input Image thay đổi
+        /// </summary>
+        private void UpdateBindingInputImage()
+        {
+            // Remove and Update
+            switch (imageInputMode)
+            {
+                case 0:
+                    break;
+                case 1:
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

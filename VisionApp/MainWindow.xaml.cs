@@ -309,6 +309,13 @@ namespace VisionApp
             wfSettingPanel.Child = listCameras[cameraIndex.Value].AcqFifoTool;
         }
 
+        private void radioModeImagebtn_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if ((sender as RadioButton).Content.ToString().IndexOf("0") > 0) listCameras[cameraIndex.Value].ImageInputMode = 0;
+            else listCameras[cameraIndex.Value].ImageInputMode = 1;
+            wfSettingPanel.Child = listCameras[cameraIndex.Value].ImageInputTool as System.Windows.Forms.Control;
+        }
+
         private void BtnSettingSelect_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             //MessageBox.Show((sender as Button).Name.ToString());
