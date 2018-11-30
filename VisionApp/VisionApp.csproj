@@ -176,7 +176,7 @@
     <Compile Include="ValueObject\ObservableObject.cs" />
     <Compile Include="ValueObject\StringValueObject.cs" />
     <Compile Include="VisionPro\patternObject.cs" />
-    <Compile Include="VisionPro\ProcessVisionJob.cs" />
+    <Compile Include="VisionPro\VisionAppObject.cs" />
     <Compile Include="VisionPro\ToolSupport.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

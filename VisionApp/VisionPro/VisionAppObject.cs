@@ -147,7 +147,7 @@ namespace VisionApp
             {
                 if (pmAlignToolEdit.Subject.DataBindings.Contains("InputImage"))
                     pmAlignToolEdit.Subject.DataBindings.Remove("InputImage");
-                pmAlignToolEdit.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
+                pmAlignToolEdit.Subject.DataBindings.Add("InputImage", cogImageFileTool.Subject, "OutputImage");
             }
         }
 
@@ -193,7 +193,7 @@ namespace VisionApp
         {
             string returnString = "";
             CogTransform2DLinear temp = null;
-            if (ImageFileTool != null) ImageFileTool.Run();
+            if (cogImageFileTool.Subject != null) cogImageFileTool.Subject.Run();
             if (cogAcqFifoEdit.Subject != null) cogAcqFifoEdit.Subject.Run();
             if (!calibGribCBTool.Subject.Calibration.Calibrated) MessageBox.Show("Image Not Calibration!!!");
             else calibGribCBTool.Subject.Run();

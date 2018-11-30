@@ -204,39 +204,6 @@
                                     </StackPanel>
                                 </Grid>
                                 <Grid Name="SSmallAlign" Grid.Row="1"/>
-                                <Grid Name="SSmallFixture" Grid.Row="1"/>
-                                <Grid Name="SSmallSharpness1" Grid.Row="1">
-                                    <StackPanel Margin="5">
-                                        <TextBlock Margin="5, 5, 5, 0" TextWrapping="Wrap" FontStyle="Italic">
-                                        Cài đặt giá trị giới hạn độ nét. Nhấn save để lưu cấu hình khi tắt chương trình. <LineBreak/>
-                                        </TextBlock>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Label Content="Min Value : " Width="70"/>
-                                            <TextBox Name="txtMinSettingsSharpness1" Text="{Binding MinSharpness1}" Width="80" Margin="5"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Label Content="Max Value : " Width="70"/>
-                                            <TextBox Name="txtMaxSettingsSharpness1" Text="{Binding MaxSharpness1}" Width="80" Margin="5"/>
-                                        </StackPanel>
-                                        <Button Name="btnSaveSharpnessSettings1" PreviewMouseDown="btnSaveSharpnessSettings1_PreviewMouseDown" Content="Save" Margin="30, 25, 30, 0"/>
-                                    </StackPanel>
-                                </Grid>
-                                <Grid Name="SSmallSharpness2" Grid.Row="1">
-                                    <StackPanel Margin="5">
-                                        <TextBlock Margin="5, 5, 5, 0" TextWrapping="Wrap" FontStyle="Italic">
-                                        Cài đặt giá trị giới hạn độ nét. Nhấn save để lưu cấu hình khi tắt chương trình. <LineBreak/>
-                                        </TextBlock>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Label Content="Min Value : " Width="70"/>
-                                            <TextBox Name="txtMinSettingsSharpness2" Text="{Binding MinSharpness2}" Width="80" Margin="5"/>
-                                        </StackPanel>
-                                        <StackPanel Orientation="Horizontal">
-                                            <Label Content="Max Value : " Width="70"/>
-                                            <TextBox Name="txtMaxSettingsSharpness2" Text="{Binding MaxSharpness2}" Width="80" Margin="5"/>
-                                        </StackPanel>
-                                        <Button Name="btnSaveSharpnessSettings2" PreviewMouseDown="btnSaveSharpnessSettings2_PreviewMouseDown" Content="Save" Margin="30, 25, 30, 0"/>
-                                    </StackPanel>
-                                </Grid>
                                 <Grid Name="SSmallFinish" Grid.Row="1"/>
                             </Grid>
                         </Grid>
