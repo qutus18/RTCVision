@@ -2,7 +2,6 @@
 using Cognex.VisionPro.ToolBlock;
 using Cognex.VisionPro.Display;
 using Cognex.VisionPro.ImageFile;
-using Cognex.VisionPro.ToolBlock;
 using Cognex.VisionPro.ToolGroup;
 using Cognex.VisionPro.Blob;
 using Cognex.VisionPro.PMAlign;
@@ -11,178 +10,178 @@ using System;
 using System.Windows;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading.Tasks;
 
 namespace VisionApp
 {
-    public class VisionJob
+    public class VisionAppObject : ObservableObject
     {
-        private string _pathToolBlock = "";
-        private string resultRunJob = "";
-        private CogToolBlockEditV2 toolBlockEdit = null;
-        private CogToolGroupEditV2 toolGroupEdit = null;
-        private CogImageFileTool imageFileTool = null;
-        private CogImageFileEditV2 imageFileEdit = null;
-        private CogDisplay cogDisplayMain = null;
-        private CogPMAlignEditV2 pmAlignTool = null;
-        private CogCalibCheckerboardEditV2 calibGribCBTool = null;
-        private CogAcqFifoEditV2 acqFifoTool = null;
-        private patternObject[] listPatterns = new patternObject[20];
-
-
-        public VisionJob()
+        // Khai báo đầu vào Image
+        private CogImageFileEditV2 cogImageFileTool = null;
+        public CogImageFileEditV2 CogImageFileTool
         {
-            toolBlockEdit = new CogToolBlockEditV2();
-            toolGroupEdit = new CogToolGroupEditV2();
+            get { return cogImageFileTool; }
+            set { cogImageFileTool = value; }
+        }
+        private CogAcqFifoEditV2 cogAcqFifoEdit = null;
+        public CogAcqFifoEditV2 CogAcqFifoEdit
+        {
+            get { return cogAcqFifoEdit; }
+            set { cogAcqFifoEdit = value; }
+        }
+        private int imageInputMode = 0;
+        public int ImageInputMode
+        {
+            get { return imageInputMode; }
+            set
+            {
+                imageInputMode = value;
+                OnPropertyChanged("ImageInputMode");
+                UpdateBindingInputImage();
+            }
+        }
+        public object ImageInputTool
+        {
+            get
+            {
+                switch (imageInputMode)
+                {
+                    case 0:
+                        return cogAcqFifoEdit;
+                    case 1:
+                        return cogImageFileTool;
+                    default:
+                        return cogAcqFifoEdit;
+                }
+            }
+            private set { }
+        }
+        // Khai báo tool Calib
+        private CogCalibCheckerboardEditV2 calibGribCBTool = null; 
+        public CogCalibCheckerboardEditV2 CalibGridCBTool
+        {
+            get { return calibGribCBTool; }
+            set { calibGribCBTool = value; }
+        }
+        // Khai báo tool Align
+        private CogPMAlignEditV2 pmAlignToolEdit = null;
+        public CogPMAlignEditV2 PMAlignToolEdit
+        {
+            get { return pmAlignToolEdit; }
+            set { pmAlignToolEdit = value; }
+        }
+        // Khai báo tool Display 
+        private CogDisplay cogDisplayMain = null;
+        public CogDisplay CogDisplayMain
+        {
+            get { return cogDisplayMain; }
+            set { cogDisplayMain = value; }
+        }
+        // Khai báo Pattern trả về mảng 20 phần tử
+        private patternObject[] listPatterns = new patternObject[20];
+        // Khai báo Event
+        public delegate void outputString(string oString);
+        public event outputString outputStringEvent;
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// Khởi tạo
+        /// </summary>
+        public VisionAppObject()
+        {
             // Temp hiển thị tool Imagefile Select
-            imageFileTool = new CogImageFileTool();
-            imageFileEdit = new CogImageFileEditV2();
-            imageFileEdit.Subject = imageFileTool;
+            cogImageFileTool = new CogImageFileEditV2();
+            cogImageFileTool.Subject = new CogImageFileTool();
 
             // Thiết lập Camera đầu vào
-            acqFifoTool = new CogAcqFifoEditV2();
-            acqFifoTool.Subject = new CogAcqFifoTool();
+            cogAcqFifoEdit = new CogAcqFifoEditV2();
+            cogAcqFifoEdit.Subject = new CogAcqFifoTool();
 
 
             // Load thư viện ảnh mặc định
             cogDisplayMain = new CogDisplay();
-            ImageFileTool.Operator.Open(@"C:\Program Files\Cognex\VisionPro\Images\CheckCal.idb", CogImageFileModeConstants.Read);
+            cogImageFileTool.Subject.Operator.Open(@"C:\Program Files\Cognex\VisionPro\Images\CheckCal.idb", CogImageFileModeConstants.Read);
 
             // Link ảnh đầu ra với ảnh đầu vào
             // Tắt tạm thời ảnh vào từ Imagefile
             // Load ảnh trực tiếp từ Camera
             //cogDisplayMain.DataBindings.Add("Image", ImageFileTool, "OutputImage", true);
-            cogDisplayMain.DataBindings.Add("Image", AcqFifoTool.Subject, "OutputImage", true);
+            cogDisplayMain.DataBindings.Add("Image", CogAcqFifoEdit.Subject, "OutputImage", true);
 
             // Tool Align
-            pmAlignTool = new CogPMAlignEditV2();
-            pmAlignTool.Subject = new CogPMAlignTool();
+            pmAlignToolEdit = new CogPMAlignEditV2();
+            pmAlignToolEdit.Subject = new CogPMAlignTool();
             //pmAlignTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
-            pmAlignTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
+            pmAlignToolEdit.Subject.DataBindings.Add("InputImage", CogAcqFifoEdit.Subject, "OutputImage");
 
             // Cấu hình Tool Calib
             calibGribCBTool = new CogCalibCheckerboardEditV2();
             calibGribCBTool.Subject = new CogCalibCheckerboardTool();
             // Sửa đầu vào Tool Calib
             //calibGribCBTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
-            calibGribCBTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
+            calibGribCBTool.Subject.DataBindings.Add("InputImage", CogAcqFifoEdit.Subject, "OutputImage");
 
             calibGribCBTool.Subject.Calibration.Changed += UpdateCalibImage;
-            pmAlignTool.SubjectChanged += UpdateCalibImage;
+            pmAlignToolEdit.SubjectChanged += UpdateCalibImage;
             calibGribCBTool.SubjectChanged += UpdateImageSource;
 
             // 
 
         }
 
+        /// <summary>
+        /// Cập nhật Binding ảnh, cho các tool đằng sau tool Calib. 
+        /// Nếu chưa calib lấy ảnh trực tiếp từ nguồn 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void UpdateCalibImage(object sender, EventArgs e)
         {
             if (calibGribCBTool.Subject.Calibration.Calibrated) // Nếu đã calib
             {
-                if (pmAlignTool.Subject.DataBindings.Contains("InputImage"))
-                    pmAlignTool.Subject.DataBindings.Remove("InputImage");
-                pmAlignTool.Subject.DataBindings.Add("InputImage", calibGribCBTool.Subject, "OutputImage");
+                if (pmAlignToolEdit.Subject.DataBindings.Contains("InputImage"))
+                    pmAlignToolEdit.Subject.DataBindings.Remove("InputImage");
+                pmAlignToolEdit.Subject.DataBindings.Add("InputImage", calibGribCBTool.Subject, "OutputImage");
             }
             else // Nếu chưa calib thì lấy ảnh trực tiếp từ nguồn
             {
-                if (pmAlignTool.Subject.DataBindings.Contains("InputImage"))
-                    pmAlignTool.Subject.DataBindings.Remove("InputImage");
-                pmAlignTool.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
+                if (pmAlignToolEdit.Subject.DataBindings.Contains("InputImage"))
+                    pmAlignToolEdit.Subject.DataBindings.Remove("InputImage");
+                pmAlignToolEdit.Subject.DataBindings.Add("InputImage", ImageFileTool, "OutputImage");
             }
         }
 
+        /// <summary>
+        /// Thay đổi binding ảnh đầu vào tool calib khi nguồn ảnh thay đổi
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void UpdateImageSource(object sender, EventArgs e)
         {
             if (calibGribCBTool.Subject.DataBindings.Contains("InputImage")) calibGribCBTool.Subject.DataBindings.Remove("InputImage");
-            calibGribCBTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
-
+            calibGribCBTool.Subject.DataBindings.Add("InputImage", CogAcqFifoEdit.Subject, "OutputImage");
             calibGribCBTool.Subject.Calibration.Changed += UpdateCalibImage;
         }
 
-        public CogCalibCheckerboardEditV2 CalibGridCBTool
-        {
-            get { return calibGribCBTool; }
-            set { calibGribCBTool = value; }
-        }
-
-        public CogAcqFifoEditV2 AcqFifoTool
-        {
-            get { return acqFifoTool; }
-            set { acqFifoTool = value; }
-        }
-
-
         /// <summary>
-        /// Trả về hàm PMAlign
+        /// Cập nhật nguồn ảnh cho tool Align khi Mode Input Image thay đổi
         /// </summary>
-        public CogPMAlignEditV2 PMAlignTool
+        private void UpdateBindingInputImage()
         {
-            get { return pmAlignTool; }
-            set { pmAlignTool = value; }
-        }
-
-        /// <summary>
-        /// Trả về hàm hiển thị ảnh
-        /// </summary>
-        public CogDisplay CogDisplayMain
-        {
-            get { return cogDisplayMain; }
-            set { cogDisplayMain = value; }
-        }
-
-        /// <summary>
-        /// Trả về control ImageFileEdit tool
-        /// </summary>
-        public CogImageFileEditV2 ImageFileEdit
-        {
-            get { return imageFileEdit; }
-            set { imageFileEdit = value; }
-        }
-
-
-        /// <summary>
-        /// Trả về ImageFileTool
-        /// </summary>
-        public CogImageFileTool ImageFileTool
-        {
-            get { return imageFileTool; }
-            set { imageFileTool = value; }
-        }
-
-        /// <summary>
-        /// Đặt giá trị đường dẫn cho ToolBlock Vision
-        /// </summary>
-        public string PathToolBlock
-        {
-            set
+            pmAlignToolEdit.Subject.DataBindings.Remove("InputImage");
+            switch (imageInputMode)
             {
-                _pathToolBlock = value;
-                toolBlockEdit.Subject = new CogToolBlock();
-                toolGroupEdit.Subject = CogSerializer.LoadObjectFromFile(_pathToolBlock) as CogToolBlock;
-            }
-            get
-            {
-                return _pathToolBlock;
+                case 0:
+                    calibGribCBTool.Subject.DataBindings.Add("InputImage", (ImageInputTool as CogAcqFifoEditV2).Subject, "OutputImage");
+                    break;
+                case 1:
+                    calibGribCBTool.Subject.DataBindings.Add("InputImage", (ImageInputTool as CogImageFileEditV2).Subject, "OutputImage");
+                    break;
+                default:
+                    break;
             }
         }
 
-        /// <summary>
-        /// Trả về ToolBlock
-        /// </summary>
-        public CogToolBlockEditV2 ToolBlockEdit
-        {
-            get { return toolBlockEdit; }
-            private set { }
-        }
-
-        /// <summary>
-        /// Trả về ToolGroup
-        /// </summary>
-        public CogToolGroupEditV2 ToolGroupEdit
-        {
-            get { return toolGroupEdit; }
-            private set { }
-        }
 
         /// <summary>
         /// Chạy lần lượt tất cả các Job
@@ -194,20 +193,18 @@ namespace VisionApp
         {
             string returnString = "";
             CogTransform2DLinear temp = null;
-            if (toolBlockEdit.Subject != null) toolBlockEdit.Subject.Run();
-            if (toolGroupEdit.Subject != null) toolGroupEdit.Subject.Run();
             if (ImageFileTool != null) ImageFileTool.Run();
-            if (acqFifoTool.Subject != null) acqFifoTool.Subject.Run();
+            if (cogAcqFifoEdit.Subject != null) cogAcqFifoEdit.Subject.Run();
             if (!calibGribCBTool.Subject.Calibration.Calibrated) MessageBox.Show("Image Not Calibration!!!");
             else calibGribCBTool.Subject.Run();
-            if (pmAlignTool.Subject != null) pmAlignTool.Subject.Run();
-            if (pmAlignTool.Subject.Results.Count > 0)
+            if (pmAlignToolEdit.Subject != null) pmAlignToolEdit.Subject.Run();
+            if (pmAlignToolEdit.Subject.Results.Count > 0)
             {
-                temp = pmAlignTool.Subject.Results[0].GetPose();
+                temp = pmAlignToolEdit.Subject.Results[0].GetPose();
             }
             if (temp != null)
             {
-                foreach (var item in pmAlignTool.Subject.Results)
+                foreach (var item in pmAlignToolEdit.Subject.Results)
                 {
                     temp = (item as CogPMAlignResult).GetPose();
                     returnString += $"X : {temp.TranslationX.ToString("0.00")} - Y : {temp.TranslationY.ToString("0.00")} - Angle : {(temp.Rotation * 180 / Math.PI).ToString("0.00")}\r\n";
@@ -222,7 +219,7 @@ namespace VisionApp
                 }
 
                 int index = 0;
-                foreach (var item in PMAlignTool.Subject.Results)
+                foreach (var item in PMAlignToolEdit.Subject.Results)
                 {
                     var tempResult = item as CogPMAlignResult;
                     listPatterns[index] = new patternObject { X = tempResult.GetPose().TranslationX, Y = tempResult.GetPose().TranslationY, Angle = tempResult.GetPose().Rotation * 180 / Math.PI };
@@ -237,6 +234,7 @@ namespace VisionApp
                     Console.WriteLine($"X: {item.X} Y: {item.Y} Angle: {item.Angle}");
                 }
 
+                log.Info("Result Run Job :\r\n" + returnString);
                 return returnString;
             }
             
@@ -247,14 +245,18 @@ namespace VisionApp
         /// Load CameraJob Form Url
         /// </summary>
         /// <param name="url"></param>
-        public void LoadJob(string url)
+        public async Task LoadJob(string url)
         {
             if (!File.Exists(url + "\\AqcTool.vpp")) return;
             if (!File.Exists(url + "\\CalibTool.vpp")) return;
             if (!File.Exists(url + "\\PMAlignTool.vpp")) return;
-            AcqFifoTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\AqcTool.vpp") as CogAcqFifoTool;
+            outputStringEvent?.Invoke("Loading " + url + "\\AqcTool.vpp");
+            CogAcqFifoEdit.Subject = CogSerializer.LoadObjectFromFile(url + "\\AqcTool.vpp") as CogAcqFifoTool;
+            outputStringEvent?.Invoke("Loading " + url + "\\CalibTool.vpp");
             CalibGridCBTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\CalibTool.vpp") as CogCalibCheckerboardTool;
-            PMAlignTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\PMAlignTool.vpp") as CogPMAlignTool;
+            outputStringEvent?.Invoke("Loading " + url + "\\PMAlignTool.vpp");
+            PMAlignToolEdit.Subject = CogSerializer.LoadObjectFromFile(url + "\\PMAlignTool.vpp") as CogPMAlignTool;
+            await Task.Delay(100);
         }
 
         /// <summary>
@@ -263,9 +265,9 @@ namespace VisionApp
         /// <param name="url"></param>
         public void SaveJob(string url)
         {
-            CogSerializer.SaveObjectToFile(AcqFifoTool.Subject as CogAcqFifoTool, url + "\\AqcTool.vpp");
+            CogSerializer.SaveObjectToFile(CogAcqFifoEdit.Subject as CogAcqFifoTool, url + "\\AqcTool.vpp");
             CogSerializer.SaveObjectToFile(CalibGridCBTool.Subject as CogCalibCheckerboardTool, url + "\\CalibTool.vpp");
-            CogSerializer.SaveObjectToFile(PMAlignTool.Subject as CogPMAlignTool, url + "\\PMAlignTool.vpp");
+            CogSerializer.SaveObjectToFile(PMAlignToolEdit.Subject as CogPMAlignTool, url + "\\PMAlignTool.vpp");
             MessageBox.Show("Save Job Done! :)");
         }
     }

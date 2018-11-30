@@ -47,8 +47,9 @@
                             <!--<MenuItem.Icon>
                             <Image Source="/VisionApp;component/Icon/engineer_icon_001.png" VerticalAlignment="Center"/>
                         </MenuItem.Icon>-->
-                            <MenuItem Header="Load" Background="White"/>
-                            <MenuItem Header="Save" Background="White"/>
+                            <MenuItem Header="New" PreviewMouseDown="MenuItemFile_PreviewMouseDown" Background="White"/>
+                            <MenuItem Header="Load" PreviewMouseDown="MenuItemFile_PreviewMouseDown" Background="White"/>
+                            <MenuItem Header="Backup" PreviewMouseDown="MenuItemFile_PreviewMouseDown" Background="White"/>
                             <MenuItem Header="Exit" Name="btnMenuExit" PreviewMouseDown="btnMenuExit_PreviewMouseDown" Background="White"/>
                         </MenuItem>
                         <MenuItem Header="Options">
@@ -182,7 +183,62 @@
                             <Button Grid.Row="3" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingInspection" Content="Inspection"/>
                             <Button Grid.Row="4" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSaveJob" Content="Save Job"/>
                             <Button Grid.Row="5" Style="{StaticResource btnStyleSettingPanel}" Margin="15" PreviewMouseDown="BtnSettingSelect_PreviewMouseDown" Name="btnSettingFinish" Content="Finish Setup"/>
-                            <Grid Grid.Row="7" Margin="15, 15, 15, 10" Background="WhiteSmoke"/>
+                            <Grid Name="SettingsSmallGrid" Grid.Row="7" Margin="10" Background="WhiteSmoke" Height="350" VerticalAlignment="Top">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="0*"/>
+                                </Grid.RowDefinitions>
+                                <Grid Name="SSmallCamera" Grid.Row="0">
+                                    <StackPanel Margin="5">
+                                        <TextBlock Margin="5, 5, 5, 0" TextWrapping="Wrap" FontStyle="Italic">
+                                        B1: Lựa chọn nguồn Camera <LineBreak/>
+                                        B2: Cài đặt Exposure
+                                        </TextBlock>
+                                        <StackPanel Margin="0, 10, 0, 0">
+                                            <Label Content="Camera Input Mode" HorizontalAlignment="Center" FontWeight="Bold"/>
+                                            <StackPanel Orientation="Horizontal" Margin="10, 0">
+                                                <RadioButton Content="Mode 0" GroupName="RadioImageInputMode" Margin="5" FontSize="11" PreviewMouseDown="radioModeImagebtn_MouseDown"/>
+                                                <RadioButton Content="Mode 1" GroupName="RadioImageInputMode" Margin="5" FontSize="11" PreviewMouseDown="radioModeImagebtn_MouseDown"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid Name="SSmallAlign" Grid.Row="1"/>
+                                <Grid Name="SSmallFixture" Grid.Row="1"/>
+                                <Grid Name="SSmallSharpness1" Grid.Row="1">
+                                    <StackPanel Margin="5">
+                                        <TextBlock Margin="5, 5, 5, 0" TextWrapping="Wrap" FontStyle="Italic">
+                                        Cài đặt giá trị giới hạn độ nét. Nhấn save để lưu cấu hình khi tắt chương trình. <LineBreak/>
+                                        </TextBlock>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Content="Min Value : " Width="70"/>
+                                            <TextBox Name="txtMinSettingsSharpness1" Text="{Binding MinSharpness1}" Width="80" Margin="5"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Content="Max Value : " Width="70"/>
+                                            <TextBox Name="txtMaxSettingsSharpness1" Text="{Binding MaxSharpness1}" Width="80" Margin="5"/>
+                                        </StackPanel>
+                                        <Button Name="btnSaveSharpnessSettings1" PreviewMouseDown="btnSaveSharpnessSettings1_PreviewMouseDown" Content="Save" Margin="30, 25, 30, 0"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid Name="SSmallSharpness2" Grid.Row="1">
+                                    <StackPanel Margin="5">
+                                        <TextBlock Margin="5, 5, 5, 0" TextWrapping="Wrap" FontStyle="Italic">
+                                        Cài đặt giá trị giới hạn độ nét. Nhấn save để lưu cấu hình khi tắt chương trình. <LineBreak/>
+                                        </TextBlock>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Content="Min Value : " Width="70"/>
+                                            <TextBox Name="txtMinSettingsSharpness2" Text="{Binding MinSharpness2}" Width="80" Margin="5"/>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Label Content="Max Value : " Width="70"/>
+                                            <TextBox Name="txtMaxSettingsSharpness2" Text="{Binding MaxSharpness2}" Width="80" Margin="5"/>
+                                        </StackPanel>
+                                        <Button Name="btnSaveSharpnessSettings2" PreviewMouseDown="btnSaveSharpnessSettings2_PreviewMouseDown" Content="Save" Margin="30, 25, 30, 0"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid Name="SSmallFinish" Grid.Row="1"/>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Border>
