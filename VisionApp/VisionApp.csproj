@@ -142,9 +142,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Cognex\VisionPro\ReferencedAssemblies\Cognex.VisionPro.ToolGroup.Controls.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationFramework.Aero2" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -168,15 +165,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Helper\DirectoryCopy.cs" />
-    <Compile Include="Helper\FolderBrowers.cs" />
     <Compile Include="SocketConnection\Server.cs" />
     <Compile Include="ValueObject\CameraIndex.cs" />
     <Compile Include="ValueObject\IntValueObject.cs" />
     <Compile Include="ValueObject\ObservableObject.cs" />
     <Compile Include="ValueObject\StringValueObject.cs" />
+    <Compile Include="ValueObject\tabMainObject.cs" />
     <Compile Include="VisionPro\patternObject.cs" />
-    <Compile Include="VisionPro\ProcessVisionJob.cs" />
+    <Compile Include="VisionPro\VisionAppObject.cs" />
     <Compile Include="VisionPro\ToolSupport.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -209,7 +205,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
