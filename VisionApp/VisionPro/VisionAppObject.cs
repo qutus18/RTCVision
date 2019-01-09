@@ -13,19 +13,13 @@ namespace VisionApp
     {
         // Khai báo đầu vào ảnh
         private CogImageFileEditV2 cogImageFileTool = null;
-        /// <summary>
-        /// Trả về control ImageFileEdit tool
-        /// </summary>
-        public CogImageFileEditV2 ImageFileEdit
+        public CogImageFileEditV2 CogImageFileTool
         {
             get { return cogImageFileTool; }
             set { cogImageFileTool = value; }
         }
         private CogAcqFifoEditV2 cogAcqFifoEdit = null;
-        /// <summary>
-        /// Trả về tool Acquition
-        /// </summary>
-        public CogAcqFifoEditV2 AcqFifoTool
+        public CogAcqFifoEditV2 CogAcqFifoEdit
         {
             get { return cogAcqFifoEdit; }
             set { cogAcqFifoEdit = value; }
@@ -60,9 +54,6 @@ namespace VisionApp
         }
         // Khai báo Tool Calib
         private CogCalibCheckerboardEditV2 calibGribCBTool = null;
-        /// <summary>
-        /// Trả về tool Calib
-        /// </summary>
         public CogCalibCheckerboardEditV2 CalibGridCBTool
         {
             get { return calibGribCBTool; }
@@ -70,24 +61,79 @@ namespace VisionApp
         }
         // Khai báo Tool Align
         private CogPMAlignEditV2 pmAlignTool = null;
-        /// <summary>
-        /// Trả về tool PMAlign
-        /// </summary>
         public CogPMAlignEditV2 PMAlignTool
         {
             get { return pmAlignTool; }
             set { pmAlignTool = value; }
         }
+        // Khai báo Tool Fixture
+        private CogFixtureEditV2 cogFixtureTool;
+        public CogFixtureEditV2 CogFixtureTool
+        {
+            get { return cogFixtureTool; }
+            set { cogFixtureTool = value; }
+        }
+        // Khai báo Tool Inspection
+        private CogPMAlignEditV2 pmInspectionTool;
+        public CogPMAlignEditV2 PMInspectionTool
+        {
+            get { return pmInspectionTool; }
+            set { pmInspectionTool = value; }
+        }
+        private int numberFullPanel; // Số lượng màn hình
+        public int NumberFullPanel
+        {
+            get { return numberFullPanel; }
+            set { numberFullPanel = value; OnPropertyChanged("NumberFullPanel"); }
+        }
+        private int numberStartPanel; // Vị trí đầu tiên Train
+        public int NumberStartPanel
+        {
+            get { return numberStartPanel; }
+            set { numberStartPanel = value; OnPropertyChanged("NumberStartPanel"); }
+        }
+        private int numberEndPanel; // Vị trí cuối cùng Train
+        public int NumberEndPanel
+        {
+            get { return numberEndPanel; }
+            set { numberEndPanel = value; OnPropertyChanged("NumberEndPanel"); }
+        }
+        /// <summary>
+        ///  Khoảng cách và tọa độ Master
+        /// </summary>
+        private double xDistance;
+        public double XDistance
+        {
+            get { return xDistance; }
+            set { xDistance = value; }
+        }
+        private double yDistance;
+        public double YDistance
+        {
+            get { return yDistance; }
+            set { yDistance = value; }
+        }
+        private double xMaster0;
+        public double XMaster0
+        {
+            get { return xMaster0; }
+            set { xMaster0 = value; }
+        }
+        private double yMaster0;
+        public double YMaster0
+        {
+            get { return yMaster0; }
+            set { yMaster0 = value; }
+        }
+
         // Khai báo Tool Display
         private CogDisplay cogDisplayMain = null;
-        /// <summary>
-        /// Trả về tool Display
-        /// </summary>
         public CogDisplay CogDisplayMain
         {
             get { return cogDisplayMain; }
             set { cogDisplayMain = value; }
         }
+        // Khai báo Pattern Result
         private patternObject[] listPatterns = new patternObject[20];
         private string lastSavedTime = "null";
 
@@ -111,63 +157,97 @@ namespace VisionApp
             cogAcqFifoEdit = new CogAcqFifoEditV2();
             cogAcqFifoEdit.Subject = new CogAcqFifoTool();
 
-            /// Link ảnh đầu ra với ảnh đầu vào
-            /// => Cần update thành Link với đầu vào Tool Align
-            cogDisplayMain.DataBindings.Add("Image", AcqFifoTool.Subject, "OutputImage", true);
-
             /// Khai báo tool Align. Mặc định link đầu vào ảnh với Tool Acq
             pmAlignTool = new CogPMAlignEditV2();
             pmAlignTool.Subject = new CogPMAlignTool();
-            pmAlignTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
 
-            // Khai báo tool Calib. Đầu vào ảnh từ Tool Acq
+            // Khai báo tool Fixture
+            cogFixtureTool = new CogFixtureEditV2();
+            cogFixtureTool.Subject = new CogFixtureTool();
+
+            // Khai báo tool Inspection tìm vị trí màn hình
+            pmInspectionTool = new CogPMAlignEditV2();
+            pmInspectionTool.Subject = new CogPMAlignTool();
+            // Load Setup Trained
+            xDistance = Settings.Default.XDistance;
+            yDistance = Settings.Default.YDistance;
+            xMaster0 = Settings.Default.XMaster0;
+            yMaster0 = Settings.Default.YMaster0;
+
+            // Khai báo tool Calib. Đầu vào ảnh từ Tool Acq.
             calibGribCBTool = new CogCalibCheckerboardEditV2();
             calibGribCBTool.Subject = new CogCalibCheckerboardTool();
-            calibGribCBTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
+
+            // Khai báo Binding Image
+            UpdateBindingImage(cogAcqFifoEdit, EventArgs.Empty);
 
             // Khai báo Event xử lý sự thay đổi của các Tool
-            calibGribCBTool.Subject.Calibration.Changed += UpdatePMAlignImageSource;
-            pmAlignTool.SubjectChanged += UpdatePMAlignImageSource;
-            calibGribCBTool.SubjectChanged += UpdateImageSource;
+            cogAcqFifoEdit.SubjectChanged += UpdateBindingImage;
+            cogImageFileTool.SubjectChanged += UpdateBindingImage;
+            pmAlignTool.SubjectChanged += UpdateBindingImage;
+            pmAlignTool.SubjectChanged += UpdateEventSubjectAlignTool;
+            pmAlignTool.Subject.Ran += AutoRunFixtureTool;
+            calibGribCBTool.SubjectChanged += UpdateBindingImage;
+            cogFixtureTool.SubjectChanged += UpdateBindingImage;
+            pmInspectionTool.SubjectChanged += UpdateBindingImage;
         }
 
         /// <summary>
-        /// Cập nhật đầu vào ảnh của Tool Align khi có sự thay đổi của Tool Calib ở trước nó
-        /// Mặc định khi chưa Calib, đầu vào lấy trực tiếp từ Tool Acq
-        /// Sau khi Calib, đầu vào lấy từ Tool Calib
+        /// Cập nhật Event khi Tool thay đổi
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void UpdatePMAlignImageSource(object sender, EventArgs e)
+        private void UpdateEventSubjectAlignTool(object sender, EventArgs e)
         {
-            if (calibGribCBTool.Subject.Calibration.Calibrated) // Nếu đã calib
-            {
-                if (pmAlignTool.Subject.DataBindings.Contains("InputImage"))
-                    pmAlignTool.Subject.DataBindings.Remove("InputImage");
-                pmAlignTool.Subject.DataBindings.Add("InputImage", calibGribCBTool.Subject, "OutputImage");
-            }
-            else // Nếu chưa calib thì lấy ảnh trực tiếp từ nguồn
-            {
-                if (pmAlignTool.Subject.DataBindings.Contains("InputImage"))
-                    pmAlignTool.Subject.DataBindings.Remove("InputImage");
-                pmAlignTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
-            }
-            // Cập nhật Binding ảnh đầu ra Display
-            //cogDisplayMain.DataBindings.Add("Image", AcqFifoTool.Subject, "OutputImage", true);
+            pmAlignTool.Subject.Ran += AutoRunFixtureTool;
         }
 
         /// <summary>
-        /// Cập nhật đầu vào ảnh của Tool Calib khi thay đổi Tool.
-        /// Đồng thời cập nhật lại Event của Tool 
+        /// Tự động chạy Tool Fixture theo Tool Align
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void UpdateImageSource(object sender, EventArgs e)
+        private void AutoRunFixtureTool(object sender, EventArgs e)
         {
-            if (calibGribCBTool.Subject.DataBindings.Contains("InputImage")) calibGribCBTool.Subject.DataBindings.Remove("InputImage");
-            calibGribCBTool.Subject.DataBindings.Add("InputImage", AcqFifoTool.Subject, "OutputImage");
-            // Event khi thay đổi chế độ Calib
-            calibGribCBTool.Subject.Calibration.Changed += UpdatePMAlignImageSource;
+            if (pmAlignTool.Subject.Results.Count > 0)
+            {
+                cogFixtureTool.Subject.RunParams.UnfixturedFromFixturedTransform = pmAlignTool.Subject.Results[0].GetPose();
+                cogFixtureTool.Subject.Run();
+            }
+        }
+
+        // Update Binding Image - Khi có thay đổi tool thì cập nhật Binding toàn bộ
+        private void UpdateBindingImage(object sender, EventArgs e)
+        {
+            // Xóa Binding cũ nếu có
+            calibGribCBTool.Subject.DataBindings.Clear();
+            pmAlignTool.Subject.DataBindings.Clear();
+            cogFixtureTool.Subject.DataBindings.Clear();
+            pmInspectionTool.Subject.DataBindings.Clear();
+            // Cập nhật Binding mới
+            switch (imageInputMode)
+             {
+                case 0:
+                    calibGribCBTool.Subject.DataBindings.Add("InputImage", (ImageInputTool as CogAcqFifoEditV2).Subject, "OutputImage");
+                    break;
+                case 1:
+                    calibGribCBTool.Subject.DataBindings.Add("InputImage", (ImageInputTool as CogImageFileEditV2).Subject, "OutputImage");
+                    break;
+                default:
+                    break;
+            } // Update Tool Calib
+            switch (calibGribCBTool.Subject.Calibration.Calibrated)
+            {
+                case true:
+                    pmAlignTool.Subject.DataBindings.Add("InputImage", calibGribCBTool.Subject, "OutputImage");
+                    cogFixtureTool.Subject.DataBindings.Add("InputImage", calibGribCBTool.Subject, "OutputImage");
+                    break;
+                case false:
+                    pmAlignTool.Subject.DataBindings.Add("InputImage", calibGribCBTool.Subject, "InputImage");
+                    cogFixtureTool.Subject.DataBindings.Add("InputImage", calibGribCBTool.Subject, "InputImage");
+                    break;
+            }
+            pmInspectionTool.Subject.DataBindings.Add("InputImage", cogFixtureTool.Subject, "OutputImage");
         }
 
         /// <summary>
@@ -181,16 +261,19 @@ namespace VisionApp
             // Chuỗi trả về của hàm
             string returnString = "";
             CogTransform2DLinear temp = null;
-            
+
             // Chạy lần lượt các Tool từ đầu xuống cuối
 
-            if (ImageFileEdit.Subject != null) ImageFileEdit.Subject.Run();
-            if (cogAcqFifoEdit.Subject != null) cogAcqFifoEdit.Subject.Run();
+            cogImageFileTool.Subject.Run();
+            cogAcqFifoEdit.Subject.Run();
             if (!calibGribCBTool.Subject.Calibration.Calibrated) MessageBox.Show("Image Not Calibration!!!");
             else calibGribCBTool.Subject.Run();
-            if (pmAlignTool.Subject != null) pmAlignTool.Subject.Run();
+            pmAlignTool.Subject.Run();
+            /// Thêm kết quả tool Align vào đầu vào Tool Fixture
+            //cogFixtureTool.Subject.Run();
+            pmInspectionTool.Subject.Run();
 
-            /// Xử lý kết quả trả về
+            /// Xử lý kết quả trả về từ tool Align
             /// Hiện tại đang gửi tất cả các tọa độ ra cho Robot
             if (pmAlignTool.Subject.Results.Count > 0)
             {
@@ -216,7 +299,7 @@ namespace VisionApp
                 foreach (var item in PMAlignTool.Subject.Results)
                 {
                     var tempResult = item as CogPMAlignResult;
-                    listPatterns[index] = new patternObject { X = tempResult.GetPose().TranslationX, Y = tempResult.GetPose().TranslationY, Angle = tempResult.GetPose().Rotation * 180 / Math.PI };
+                    if (index < 20) listPatterns[index] = new patternObject { X = tempResult.GetPose().TranslationX, Y = tempResult.GetPose().TranslationY, Angle = tempResult.GetPose().Rotation * 180 / Math.PI };
                     index += 1;
                 }
                 listPatterns = ToolSupport.SortPatterns(listPatterns);
@@ -225,9 +308,12 @@ namespace VisionApp
                     Console.WriteLine($"X: {item.X} Y: {item.Y} Angle: {item.Angle}");
                 }
                 #endregion
-
+                // Test End Panel
+                CalculateEndPanelPosition();
                 return returnString;
             }
+            /// Xử lý kết quả trả về Tool Inspection
+            /// 
             // Nếu không tìm thấy thì trả về Fail
             return "Fail";
         }
@@ -239,12 +325,10 @@ namespace VisionApp
         /// <param name="url"></param>
         public void LoadJob(string url)
         {
-            if (!File.Exists(url + "\\AqcTool.vpp")) return;
-            if (!File.Exists(url + "\\CalibTool.vpp")) return;
-            if (!File.Exists(url + "\\PMAlignTool.vpp")) return;
-            AcqFifoTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\AqcTool.vpp") as CogAcqFifoTool;
-            CalibGridCBTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\CalibTool.vpp") as CogCalibCheckerboardTool;
-            PMAlignTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\PMAlignTool.vpp") as CogPMAlignTool;
+            if (File.Exists(url + "\\AqcTool.vpp")) CogAcqFifoEdit.Subject = CogSerializer.LoadObjectFromFile(url + "\\AqcTool.vpp") as CogAcqFifoTool;
+            if (File.Exists(url + "\\CalibTool.vpp")) CalibGridCBTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\CalibTool.vpp") as CogCalibCheckerboardTool;
+            if (File.Exists(url + "\\PMAlignTool.vpp")) PMAlignTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\PMAlignTool.vpp") as CogPMAlignTool;
+            if (File.Exists(url + "\\PMInspectionTool.vpp")) PMInspectionTool.Subject = CogSerializer.LoadObjectFromFile(url + "\\PMInspectionTool.vpp") as CogPMAlignTool;
         }
 
         /// <summary>
@@ -254,9 +338,10 @@ namespace VisionApp
         /// <param name="url"></param>
         public void SaveJob(string url)
         {
-            CogSerializer.SaveObjectToFile(AcqFifoTool.Subject as CogAcqFifoTool, url + "\\AqcTool.vpp");
+            CogSerializer.SaveObjectToFile(CogAcqFifoEdit.Subject as CogAcqFifoTool, url + "\\AqcTool.vpp");
             CogSerializer.SaveObjectToFile(CalibGridCBTool.Subject as CogCalibCheckerboardTool, url + "\\CalibTool.vpp");
             CogSerializer.SaveObjectToFile(PMAlignTool.Subject as CogPMAlignTool, url + "\\PMAlignTool.vpp");
+            CogSerializer.SaveObjectToFile(PMInspectionTool.Subject as CogPMAlignTool, url + "\\PMInspectionTool.vpp");
             Console.WriteLine("Save Job Done! :)");
             lastSavedTime = DateTime.Now.ToLongDateString() + "-" + DateTime.Now.ToLongTimeString();
         }
@@ -283,19 +368,132 @@ namespace VisionApp
         }
 
         /// <summary>
-        /// Cập nhật nguồn ảnh cho tool Align khi Mode Input Image thay đổi
+        /// Cập nhật nguồn ảnh cho tool Calib khi Mode Input Image thay đổi
         /// </summary>
         private void UpdateBindingInputImage()
         {
+            calibGribCBTool.Subject.DataBindings.Clear();
             // Remove and Update
             switch (imageInputMode)
             {
                 case 0:
+                    calibGribCBTool.Subject.DataBindings.Add("InputImage", (ImageInputTool as CogAcqFifoEditV2).Subject, "OutputImage");
                     break;
                 case 1:
+                    calibGribCBTool.Subject.DataBindings.Add("InputImage", (ImageInputTool as CogImageFileEditV2).Subject, "OutputImage");
                     break;
                 default:
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Train Inspection
+        /// </summary>
+        public void TrainInspectionPanel()
+        {
+            if (pmInspectionTool.Subject.Results.Count > 0)
+            {
+                /// Nạp các giá trị pattern tìm thấy vào mảng dữ liệu 
+                /// 1. Khởi tạo mảng dữ liệu 20 phần tử
+                /// 2. Thêm vào mảng
+                /// 3. Sắp xếp mảng theo chiều giảm của tọa độ Pattern
+                /// 4. In ra Console các giá trị của mảng
+                listPatterns = new patternObject[20];
+                for (int i = 0; i < listPatterns.Length; i++)
+                {
+                    listPatterns[i] = new patternObject();
+                }
+                int index = 0;
+                foreach (var item in pmInspectionTool.Subject.Results)
+                {
+                    var tempResult = item as CogPMAlignResult;
+                    listPatterns[index] = new patternObject { X = tempResult.GetPose().TranslationX, Y = tempResult.GetPose().TranslationY, Angle = tempResult.GetPose().Rotation * 180 / Math.PI };
+                    index += 1;
+                }
+                listPatterns = ToolSupport.SortPatterns(listPatterns);
+                // Calculate Train
+                double tempXDistance, tempYDistance, tempXStart, tempYStart, tempXStop, tempYStop, tempXMaster0, tempYMaster0;
+                tempXStart = listPatterns[0].X;
+                tempYStart = listPatterns[0].Y;
+                // Find Stop Point 
+                int tempEndPoint = ToolSupport.EndPoint(listPatterns);
+                tempXStop = listPatterns[tempEndPoint].X;
+                tempYStop = listPatterns[tempEndPoint].Y;
+                // Calculate Distance 2 Panel
+                tempXDistance = ((tempXStop - tempXStart) / (numberEndPanel - numberStartPanel));
+                tempYDistance = ((tempYStop - tempYStart) / (numberEndPanel - numberStartPanel));
+                // Calculate Master0 Panel
+                tempXMaster0 = tempXStart - numberStartPanel * tempXDistance;
+                tempYMaster0 = tempYStart - numberStartPanel * tempYDistance;
+                // Finish 
+                XMaster0 = tempXMaster0;
+                YMaster0 = tempYMaster0;
+                XDistance = tempXDistance;
+                YDistance = tempYDistance;
+                // Save to Settings
+                Settings.Default.XMaster0 = XMaster0;
+                Settings.Default.YMaster0 = YMaster0;
+                Settings.Default.XDistance = XDistance;
+                Settings.Default.YDistance = YDistance;
+                Settings.Default.Save();
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Tính toán vị trí Panel cuối cùng
+        /// </summary>
+        public int CalculateEndPanelPosition()
+        {
+            if (pmInspectionTool.Subject.Results.Count > 0)
+            {
+                /// Nạp các giá trị pattern tìm thấy vào mảng dữ liệu 
+                /// 1. Khởi tạo mảng dữ liệu 20 phần tử
+                /// 2. Thêm vào mảng
+                /// 3. Sắp xếp mảng theo chiều giảm của tọa độ Pattern
+                /// 4. In ra Console các giá trị của mảng
+                listPatterns = new patternObject[20];
+                for (int i = 0; i < listPatterns.Length; i++)
+                {
+                    listPatterns[i] = new patternObject();
+                }
+                int index = 0;
+                foreach (var item in pmInspectionTool.Subject.Results)
+                {
+                    var tempResult = item as CogPMAlignResult;
+                    listPatterns[index] = new patternObject { X = tempResult.GetPose().TranslationX, Y = tempResult.GetPose().TranslationY, Angle = tempResult.GetPose().Rotation * 180 / Math.PI };
+                    index += 1;
+                }
+                listPatterns = ToolSupport.SortPatterns(listPatterns);
+                // Find Stop Point 
+                int tempEndPoint = ToolSupport.EndPoint(listPatterns);
+                double tempNegative = -10;
+                double tempPositive = 10;
+                // Find End Panel Position
+                int tempPanel = -1;
+                for (int i = 0; i < 20; i++)
+                {
+                    double tempX = XMaster0 + XDistance * i;
+                    double tempY = YMaster0 + YDistance * i;
+                    if ((listPatterns[tempEndPoint].X - tempX) > tempNegative)
+                        if ((listPatterns[tempEndPoint].X - tempX) < tempPositive)
+                            //if ((listPatterns[tempEndPoint].Y - tempY) > tempNegative)
+                            //    if ((listPatterns[tempEndPoint].Y - tempY) > tempNegative)
+                                {
+                                    tempPanel = i;
+                                    break;
+                                }
+                }
+                MessageBox.Show($"Position Panel is : {tempPanel}");
+                return tempPanel;
+            }
+            else
+            {
+                return -1;
             }
         }
     }

@@ -1,4 +1,6 @@
-﻿namespace VisionApp
+﻿using System;
+
+namespace VisionApp
 {
     public static class ToolSupport
     {
@@ -24,6 +26,21 @@
                 }
             }
             return inputPatternsList;
+        }
+
+        /// <summary>
+        /// Tìm điểm cuối cùng đã có tọa độ trong mảng
+        /// </summary>
+        /// <param name="inputPatternsList"></param>
+        /// <returns></returns>
+        internal static int EndPoint(patternObject[] inputPatternsList)
+        {
+            int temp = 0;
+            for (int i = 0; i < inputPatternsList.Length; i++)
+            {
+                if (inputPatternsList[i].X > -9999) temp = i;
+            }
+            return temp;
         }
     }
 }
