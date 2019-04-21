@@ -111,10 +111,10 @@ namespace VisionApp
             {
                 state.sb.Append(Encoding.UTF8.GetString(state.buffer, 0, read));
 
-                if (state.sb.ToString().Contains("rbE"))
+                if (state.sb.ToString().Contains(","))
                 {
                     string toSend = "";
-                    string cmd = Between(state.sb.ToString(), "rbS_", "_rbE");
+                    string cmd = state.sb.ToString();
 
                     switch (cmd)
                     {
@@ -133,8 +133,8 @@ namespace VisionApp
                             break;
                     }
 
-                    toSend = "camS_" + toSend + "_camE\r\n";
-
+                    //toSend = toSend + " Received!\r\n";
+                    toSend = "";
                     byte[] bytesToSend = Encoding.UTF8.GetBytes(toSend);
                     handler.BeginSend(bytesToSend, 0, bytesToSend.Length, SocketFlags.None
                         , new AsyncCallback(sendCallback), state);

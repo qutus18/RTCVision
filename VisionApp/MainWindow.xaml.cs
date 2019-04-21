@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -15,6 +16,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using VisionApp.VisionPro;
 
 namespace VisionApp
 {
@@ -24,17 +28,17 @@ namespace VisionApp
     public partial class MainWindow : Window
     {
         private StringValueObject strViewButton, logString;
+        private CameraIndex cameraIndex;
         private IntValueObject logPanelHeight, intSettingButtonStage;
         private Thread socketThread;
         private List<Socket> tcpListSocketConnect = new List<Socket>();
         private Server myServer;
         private static Boolean isServerBusy = false;
-        private VisionJob cogCamera01;
-        private CameraIndex cameraIndex;
-        private VisionJob[] listCameras = new VisionJob[4];
         private string currentJobUrl = @"E:\#Latus\JobRun\SVI_20182111_1136";
         private StringValueObject settingDisplayCameraInfo;
         private ICommand p_F3Command;
+        private AutoCalibObject autoCalibTool;
+        private CameraVPro TestCamera = new CameraVPro();
 
         public MainWindow()
         {
@@ -43,9 +47,8 @@ namespace VisionApp
             DisplayInitial();
             // Khai bao Server TCP/IP
             VisionProInitial();
-            //
+            // Khai báo Server Camera, nhận kết nối từ Robot
             SocketTCPInitial();
-
         }
 
 
@@ -54,76 +57,9 @@ namespace VisionApp
         /// </summary>
         private void VisionProInitial()
         {
-            cogCamera01 = new VisionJob();
-            for (int i = 0; i < listCameras.Length; i++)
-            {
-                listCameras[i] = new VisionJob();
-            }
 
-            // Load Job
-            LoadCurrentJobInitial();
-            // Load Settings Saved
-            LoadVisionProSettings();
-
-            wfCogDisplayMain1.Child = listCameras[0].CogDisplayMain;
-            wfCogDisplayMain2.Child = listCameras[1].CogDisplayMain;
-            wfCogDisplayMain3.Child = listCameras[2].CogDisplayMain;
-            wfCogDisplayMain4.Child = listCameras[3].CogDisplayMain;
-            //cogCamera01.ToolBlockEdit.Subject.Ran += ShowResult;
         }
 
-        private void LoadVisionProSettings()
-        {
-            for (int i = 0; i < listCameras.Length; i++)
-            {
-                switch (i)
-                {
-                    case 0:
-                        listCameras[cameraIndex.Value].NumberFullPanel = Settings.Default.InspectionFullPanel00;
-                        listCameras[cameraIndex.Value].NumberStartPanel = Settings.Default.InspectionStartPanel00;
-                        listCameras[cameraIndex.Value].NumberEndPanel = Settings.Default.InspectionEndPanel00;
-                        break;
-                    case 1:
-                        listCameras[cameraIndex.Value].NumberFullPanel = Settings.Default.InspectionFullPanel01;
-                        listCameras[cameraIndex.Value].NumberStartPanel = Settings.Default.InspectionStartPanel01;
-                        listCameras[cameraIndex.Value].NumberEndPanel = Settings.Default.InspectionEndPanel01;
-                        break;
-                    case 2:
-                        listCameras[cameraIndex.Value].NumberFullPanel = Settings.Default.InspectionFullPanel02;
-                        listCameras[cameraIndex.Value].NumberStartPanel = Settings.Default.InspectionStartPanel02;
-                        listCameras[cameraIndex.Value].NumberEndPanel = Settings.Default.InspectionEndPanel02;
-                        break;
-                    case 3:
-                        listCameras[cameraIndex.Value].NumberFullPanel = Settings.Default.InspectionFullPanel03;
-                        listCameras[cameraIndex.Value].NumberStartPanel = Settings.Default.InspectionStartPanel03;
-                        listCameras[cameraIndex.Value].NumberEndPanel = Settings.Default.InspectionEndPanel03;
-                        break;
-                    default:
-                        break;
-                }
-                
-            }
-        }
-
-        /// <summary>
-        /// Load lại chương trình các Camera theo đường dẫn lưu trong currentJobUrl
-        /// </summary>
-        private void LoadCurrentJobInitial()
-        {
-            try
-            {
-                for (int i = 0; i < listCameras.Length; i++)
-                {
-                    listCameras[i].LoadJob(currentJobUrl + $"\\Cam{i}");
-                }
-            }
-            catch { MessageBox.Show("Fail to Load Job! :("); }
-        }
-
-        private void ShowResult(object sender, EventArgs e)
-        {
-            Console.WriteLine("Ran!!");
-        }
 
         /// <summary>
         /// Khởi tạo thread kết nối Socket Server
@@ -157,63 +93,29 @@ namespace VisionApp
         }
 
         /// <summary>
-        /// Wait a second
-        /// </summary>
-        /// <returns></returns>
-        async Task PutTaskDelay()
-        {
-            await Task.Delay(100);
-        }
-
-        /// <summary>
         /// Xử lý lệnh nhận về từ Client
         /// </summary>
         /// <param name="rev"></param>
         /// <param name="socket"></param>
-        private async void ProcessClientCommand(string rev, Socket socket)
+        private void ProcessClientCommand(string rev, Socket socket)
         {
             string tempS = $"Time: {DateTime.Now.ToLongTimeString()} - Receive cmd = {rev}, from client = {socket.RemoteEndPoint}\r\n";
+            string toSend = TestCamera.Command(rev) + " Received!\r\n";
 
-            /// Kiểm tra Camera tương ứng
-            /// Tính toán
-            int tempCameraCmdIndex = -1;
-            string strTrig = "TriggerCamera";
-            if (rev.IndexOf(strTrig) >= 0)
-            {
-                try
-                {
-                    string tempGet = rev.Substring(rev.IndexOf(strTrig) + strTrig.Length, 1);
-                    tempCameraCmdIndex = int.Parse(tempGet);
-                }
-                catch
-                {
-                    tempCameraCmdIndex = -1;
-                }
-            }
+            byte[] bytesToSend = Encoding.UTF8.GetBytes(toSend);
+            socket.Send(bytesToSend);
+        }
 
-            logString.Value = tempS + logString.Value;
-            if (!isServerBusy)
+        private void ProcessToEndHandeye()
+        {
+            autoCalibTool.Calculate();
+            if (autoCalibTool.CalibrationStatus == true)
             {
-                string tempSend = "";
-                // Bật cờ báo Busy và tắt ở cuối chu trình
-                isServerBusy = true;
-                // Chạy Job Camera tương ứng
-                if ((tempCameraCmdIndex > -1) && (tempCameraCmdIndex < 4)) tempSend = listCameras[tempCameraCmdIndex].RunJob();
-                else
-                {
-                    tempSend = "Error Cmd Camera! 0";
-                }
-                tempSend = "camS_" + tempSend + "_camE\r\n";
-                byte[] bytesToSend = Encoding.UTF8.GetBytes(tempSend);
-                //await PutTaskDelay();
-                socket.Send(bytesToSend, 0, bytesToSend.Length, SocketFlags.None);
-                // Tắt cờ Busy
-                isServerBusy = false;
+                MessageBox.Show("Calibration Done!");
             }
             else
             {
-                byte[] bytesToSend = Encoding.UTF8.GetBytes("I'm very busy, see you later!");
-                socket.Send(bytesToSend, 0, bytesToSend.Length, SocketFlags.None);
+                MessageBox.Show("Calibration Fail!");
             }
         }
 
@@ -244,19 +146,6 @@ namespace VisionApp
             tab3Column.Width = new GridLength(1, GridUnitType.Star);
 
             // Mặc định hiển thị Tool Acq của Camera 0;
-            wfSettingPanel.ChildChanged += UpdateDislayCameraTool;
-            if (listCameras[0] != null) wfSettingPanel.Child = listCameras[0].CogAcqFifoEdit;
-        }
-
-        /// <summary>
-        /// Cập nhật hiển thị khi thay đổi nội dung của hiển thị Setting (chuyển Tool Camera)
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void UpdateDislayCameraTool(object sender, ChildChangedEventArgs e)
-        {
-            // Cập nhật hiển thị của Label Info
-            settingDisplayCameraInfo.Value = listCameras[cameraIndex.Value].GetInfo();
         }
 
         /// <summary>
@@ -292,6 +181,10 @@ namespace VisionApp
                 case "Settings":
                     value1 = 0; value2 = 0; value3 = 10;
                     break;
+                case "RunTest":
+                    TestCamera.GetNormalAlign();
+                    value1 = 0; value2 = 0; value3 = 10;
+                    break;
                 default:
                     MessageBox.Show("Wrong Setting! Select Menu Switch");
                     break;
@@ -301,11 +194,11 @@ namespace VisionApp
             tab3Column.Width = new GridLength(value3, GridUnitType.Star);
         }
 
-        /// <summary>
-        /// Hiển thị control Tab tương ứng 0, 1, 2
-        /// </summary>
-        /// <param name="tabIndex"></param>
-        private void showControlTab(int tabIndex)
+		/// <summary>
+		/// Hiển thị control Tab tương ứng 0, 1, 2
+		/// </summary>
+		/// <param name="tabIndex"></param>
+		private void showControlTab(int tabIndex)
         {
             int value1 = 0;
             int value2 = 0;
@@ -342,21 +235,6 @@ namespace VisionApp
                 cameraIndex.Value -= 1;
                 if (cameraIndex.Value == -1) cameraIndex.Value = 3;
             }
-            // Load Default View
-            wfSettingPanel.Child = listCameras[cameraIndex.Value].CogAcqFifoEdit;
-            wfCogDisplayMain1.Child = listCameras[cameraIndex.Value].CogFixtureTool;
-            // Update Settings Small Panel Data Content
-            SettingsSmallGrid.DataContext = listCameras[cameraIndex.Value];
-            txtMaxPanel.DataContext = listCameras[cameraIndex.Value];
-            txtStartPanel.DataContext = listCameras[cameraIndex.Value];
-            txtEndPanel.DataContext = listCameras[cameraIndex.Value];
-        }
-
-        private void radioModeImagebtn_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if ((sender as RadioButton).Content.ToString().IndexOf("0") > 0) listCameras[cameraIndex.Value].ImageInputMode = 0;
-            else listCameras[cameraIndex.Value].ImageInputMode = 1;
-            wfSettingPanel.Child = listCameras[cameraIndex.Value].ImageInputTool as System.Windows.Forms.Control;
         }
 
         private void BtnSettingSelect_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -366,19 +244,18 @@ namespace VisionApp
             {
                 case ("btnSettingCameraInitial"):
                     //MessageBox.Show((sender as Button).Name);
-                    wfSettingPanel.Child = listCameras[cameraIndex.Value].ImageInputTool as System.Windows.Forms.Control;
+                    wfSettingPanel.Child = TestCamera.CogAcqFifoEdit as System.Windows.Forms.Control;
                     ChangeSettingsSmallGrid("Camera");
                     break;
                 case ("btnSettingCalib"):
-                    if (listCameras[cameraIndex.Value].CalibGridCBTool != null) wfSettingPanel.Child = listCameras[cameraIndex.Value].CalibGridCBTool;
+                    wfSettingPanel.Child = TestCamera.CogCalibGrid as System.Windows.Forms.Control;
                     break;
                 case ("btnSettingAlign"):
-                    if (listCameras[cameraIndex.Value].PMAlignTool != null) wfSettingPanel.Child = listCameras[cameraIndex.Value].PMAlignTool;
+                    wfSettingPanel.Child = TestCamera.CogPMAlign as System.Windows.Forms.Control;
                     ChangeSettingsSmallGrid("Align");
                     break;
                 case ("btnSettingInspection"):
                     //MessageBox.Show((sender as Button).Name);
-                    wfSettingPanel.Child = listCameras[cameraIndex.Value].PMInspectionTool;
                     ChangeSettingsSmallGrid("Inspection");
                     break;
                 case ("btnSettingFinish"):
@@ -391,56 +268,7 @@ namespace VisionApp
                     // Lưu chương trình Camera hiện tại theo đường dẫn trong currentJobUrl
                     if (MessageBox.Show($"Confirm save current job camera {cameraIndex.Value}?", "Question", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
                     {
-                        listCameras[cameraIndex.Value].SaveJob(currentJobUrl + $"\\Cam{cameraIndex.Value}");
                     }
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Nút nhấn Train Inspection Tool Panel
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void BtnTrainInspectionSettings_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            SaveInspectionPanelSetting();
-            // Thực hiện tính toán vị trí Master Panel
-            listCameras[cameraIndex.Value].TrainInspectionPanel();
-        }
-        
-        /// <summary>
-        /// Lưu giá trị cài đặt tool Inspection Align
-        /// </summary>
-        private void SaveInspectionPanelSetting()
-        {
-            switch (cameraIndex.Value)
-            {
-                case 0:
-                    Settings.Default.InspectionFullPanel00  = listCameras[cameraIndex.Value].NumberFullPanel ;
-                    Settings.Default.InspectionStartPanel00 = listCameras[cameraIndex.Value].NumberStartPanel;
-                    Settings.Default.InspectionEndPanel00 = listCameras[cameraIndex.Value].NumberEndPanel;
-                    Settings.Default.Save();
-                    break;
-                case 1:
-                    Settings.Default.InspectionFullPanel01 = listCameras[cameraIndex.Value].NumberFullPanel;
-                    Settings.Default.InspectionStartPanel01 = listCameras[cameraIndex.Value].NumberStartPanel;
-                    Settings.Default.InspectionEndPanel01 = listCameras[cameraIndex.Value].NumberEndPanel;
-                    Settings.Default.Save();
-                    break;
-                case 2:
-                    Settings.Default.InspectionFullPanel02 = listCameras[cameraIndex.Value].NumberFullPanel;
-                    Settings.Default.InspectionStartPanel02 = listCameras[cameraIndex.Value].NumberStartPanel;
-                    Settings.Default.InspectionEndPanel02 = listCameras[cameraIndex.Value].NumberEndPanel;
-                    Settings.Default.Save();
-                    break;
-                case 3:
-                    Settings.Default.InspectionFullPanel03 = listCameras[cameraIndex.Value].NumberFullPanel;
-                    Settings.Default.InspectionStartPanel03 = listCameras[cameraIndex.Value].NumberStartPanel;
-                    Settings.Default.InspectionEndPanel03 = listCameras[cameraIndex.Value].NumberEndPanel;
-                    Settings.Default.Save();
                     break;
                 default:
                     break;
@@ -449,7 +277,17 @@ namespace VisionApp
 
         private void MenuItemRun_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            listCameras[cameraIndex.Value].RunJob();
+            TestCamera.GetNormalAlign();
+        }
+
+        private void radioModeImagebtn_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
+        private void BtnTrainInspectionSettings_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+
         }
 
         /// <summary>

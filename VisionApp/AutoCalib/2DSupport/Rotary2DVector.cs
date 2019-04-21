@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace VisionApp.AutoCalib
+namespace VisionApp
 {
     public static class Rotary2DVector
     {

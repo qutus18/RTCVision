@@ -55,8 +55,10 @@
                             <MenuItem Header="Settings" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
                             <MenuItem Header="Running" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
                             <MenuItem Header="StartUp" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-                            <MenuItem Header="Initial" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-                        </MenuItem>
+							<MenuItem Header="Initial" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+							<MenuItem Header="RunTest" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+							<MenuItem Header="TempReadObj" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+						</MenuItem>
                         <MenuItem Header="About">
                             <MenuItem Header="Info" Background="White" PreviewMouseDown="MenuItemRun_PreviewMouseDown"/>
                         </MenuItem>

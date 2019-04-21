@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{7BBEDE84-802A-4D9F-B454-4D4B646A5D6A}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>VisionApp</RootNamespace>
     <AssemblyName>VisionApp</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
@@ -79,6 +79,9 @@
   <PropertyGroup>
     <ApplicationIcon>icons8_Cameras.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Cognex.FieldCalibrationApplication.Plugin, Version=63.0.0.0, Culture=neutral, PublicKeyToken=ef0f902af9dee505, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
@@ -144,25 +147,58 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Cognex\VisionPro\ReferencedAssemblies\Cognex.VisionPro.ToolGroup.Controls.dll</HintPath>
     </Reference>
-    <Reference Include="PresentationFramework.Aero2" />
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Numerics.Vectors" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="System.Net.Http" />
+    <Reference Include="PresentationFramework.Aero2">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Numerics.Vectors">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="WindowsFormsIntegration" />
+    <Reference Include="WindowsBase">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PresentationCore">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WindowsFormsIntegration">
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -170,8 +206,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="AutoCalib\2DSupport\Calculate2DVectorFromTCP.cs" />
+    <Compile Include="AutoCalib\2DSupport\PointAddVector.cs" />
     <Compile Include="AutoCalib\2DSupport\Rotary2DVector.cs" />
     <Compile Include="AutoCalib\3DSupport\CalculateTranform3Dto2DMatrix.cs" />
+    <Compile Include="AutoCalib\AutoCalibObject.cs" />
+    <Compile Include="VisionPro\Helper\TransformMatrixCal.cs" />
+    <Compile Include="AutoCalib\PointWithAngleRobotCamera.cs" />
     <Compile Include="AutoCalib\TransformTools\TransformTools.cs" />
     <Compile Include="Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -184,9 +224,12 @@
     <Compile Include="ValueObject\ObservableObject.cs" />
     <Compile Include="ValueObject\StringValueObject.cs" />
     <Compile Include="ValueObject\tabMainObject.cs" />
-    <Compile Include="VisionPro\patternObject.cs" />
-    <Compile Include="VisionPro\VisionAppObject.cs" />
-    <Compile Include="VisionPro\ToolSupport.cs" />
+    <Compile Include="VisionPro\AutoCalibObj\AutoCalibTool.cs" />
+    <Compile Include="VisionPro\Helper\TransformTTCal.cs" />
+    <Compile Include="VisionPro\CameraVPro.cs" />
+    <Compile Include="VisionPro\Helper\Helpers.cs" />
+    <Compile Include="VisionPro\InpectionObj\InspectionTool.cs" />
+    <Compile Include="VisionPro\PointVectorMatrix\PointWithTheta.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -239,7 +282,9 @@
   <ItemGroup>
     <Resource Include="icons8_Cameras.ico" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="AutoCalib\MathSupport\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
