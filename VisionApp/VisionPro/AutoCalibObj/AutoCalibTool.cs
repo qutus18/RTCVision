@@ -20,6 +20,7 @@ namespace VisionApp.VisionPro
         //public CogCalibNPointToNPoint CalibNPointToolRamRB { get; set; }
         public Matrix4x4 TransformMatrixPOROV { get; set; }
         public Matrix4x4 TransformTT { get; set; }
+        public Matrix4x4 TransformMatrixBASE { get; set; }
         public ICogTransform2D PointTransformToolFromNPointCalib { get; private set; }
         public bool CalNpointOK { get; set; }
         public bool CalTTMatrixOK { get; set; }
@@ -70,14 +71,16 @@ namespace VisionApp.VisionPro
         /// <returns></returns>
         public bool Calculate()
         {
-            // Tính toán ma trận chuyển hệ Robot sang hệ Camera POROV
-            TransformMatrixPOROV = TransformMatrixCal.Calculate(ListAutoCalibPointsCam[9], ListAutoCalibPointsCam[10], ListAutoCalibPointsRB[9]);
+            // Tính toán ma trận chuyển hệ Robot sang hệ Camera POROV TransformMatrixPOROV
+            var tempArrMatrix = TransformMatrixCal.CalPBaseAndPOROC(ListAutoCalibPointsRB[9], ListAutoCalibPointsRB[10], ListAutoCalibPointsCam[9], ListAutoCalibPointsCam[10]);
+            TransformMatrixPOROV = tempArrMatrix[1];
+            TransformMatrixBASE = tempArrMatrix[0];
             if (TransformMatrixPOROV == null) return false;
 
             // Chuyển đổi sang ma trận Robot trên hệ tọa độ Camera
             Matrix4x4 InvTransformMatrixPOROV;
             Matrix4x4.Invert(TransformMatrixPOROV, out InvTransformMatrixPOROV);
-            List<PointWithTheta> ListAutoCalibPointsRB_OCam = Helper.CalTransRobotToOCam(ListAutoCalibPointsRB, InvTransformMatrixPOROV);
+            List<PointWithTheta> ListAutoCalibPointsRB_OCam = Helper.CalTransRobotToOCam(ListAutoCalibPointsRB, InvTransformMatrixPOROV, TransformMatrixBASE);
 
             // Thêm điểm vào Tool Calib N Point, tính toán trả về Tool chuyển đổi điểm qua N Point 
             if (NumberPoints >= 11)
@@ -112,8 +115,7 @@ namespace VisionApp.VisionPro
             if (CalNpointOK && CalTTMatrixOK)
             {
                 PointWithTheta inputPointOCam = Helper.TransPointFromNPoint(PointTransformToolFromNPointCalib, outputAlign);
-                PointWithTheta inputPointOCamTT = Helper.TransPoint(inputPointOCam, TransformTT);
-                PointWithTheta outputRBPoint = Helper.TransPoint(inputPointOCamTT, TransformMatrixPOROV);
+                PointWithTheta outputRBPoint = Helper.CalTransAlignToRobot(inputPointOCam, TransformTT, TransformMatrixPOROV);
                 return outputRBPoint;
             }
             else return null;
