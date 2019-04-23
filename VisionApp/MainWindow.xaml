@@ -35,36 +35,38 @@
     </Window.Resources>
     <Grid Name="gridTotalMain">
         <Grid.RowDefinitions>
-            <RowDefinition Height="25"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="{Binding Value, FallbackValue=20}"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" Background="#FF2E2E2E">
             <Border BorderThickness="1" BorderBrush="White" Background="White">
-                <Grid>
-                    <Menu Foreground="#FF1D1D1D" Padding="1" FontSize="13" FontWeight="DemiBold">
-                        <MenuItem Header="File" VerticalContentAlignment="Center">
-                            <!--<MenuItem.Icon>
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top">
+                        <Menu Foreground="#FF1D1D1D" Background="White" Padding="1" FontSize="13" FontWeight="DemiBold">
+                            <MenuItem Header="File" VerticalContentAlignment="Center">
+                                <!--<MenuItem.Icon>
                             <Image Source="/VisionApp;component/Icon/engineer_icon_001.png" VerticalAlignment="Center"/>
                         </MenuItem.Icon>-->
-                            <MenuItem Header="Load"/>
-                            <MenuItem Header="Save"/>
-                            <MenuItem Header="Exit" Name="btnMenuExit" PreviewMouseDown="btnMenuExit_PreviewMouseDown"/>
-                        </MenuItem>
-                        <MenuItem Header="Options">
-                            <MenuItem Header="Settings" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-                            <MenuItem Header="Running" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-                            <MenuItem Header="StartUp" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-							<MenuItem Header="Initial" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-							<MenuItem Header="RunTest" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-							<MenuItem Header="TempReadObj" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-						</MenuItem>
-                        <MenuItem Header="About">
-                            <MenuItem Header="Info" Background="White" PreviewMouseDown="MenuItemRun_PreviewMouseDown"/>
-                        </MenuItem>
-                    </Menu>
-                    <!--<Label Name="lblExit" PreviewMouseDown="lblExit_PreviewMouseDown" Content="X" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="4"  FontWeight="Bold"/>-->
-                </Grid>
+                                <MenuItem Header="Load"/>
+                                <MenuItem Header="Save"/>
+                                <MenuItem Header="Exit" Name="btnMenuExit" PreviewMouseDown="btnMenuExit_PreviewMouseDown"/>
+                            </MenuItem>
+                            <MenuItem Header="Options">
+                                <MenuItem Header="Settings" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="Running" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="StartUp" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="Initial" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="RunTest" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="TempReadObj" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                            </MenuItem>
+                            <MenuItem Header="About">
+                                <MenuItem Header="Info" Background="White" PreviewMouseDown="MenuItemRun_PreviewMouseDown"/>
+                            </MenuItem>
+                        </Menu>
+                        <!--<Label Name="lblExit" PreviewMouseDown="lblExit_PreviewMouseDown" Content="X" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="4"  FontWeight="Bold"/>-->
+                    </Grid>
+                </DockPanel>
             </Border>
         </Grid>
         <Grid Grid.Row="1">
