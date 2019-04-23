@@ -73,7 +73,7 @@ namespace VisionApp.VisionPro
                                             0, 0, 0, 1);
             Matrix4x4 invPgetOC;
             Matrix4x4.Invert(PGetOC, out invPgetOC);
-            return Matrix4x4.Multiply(invPgetOC, PGet);
+            return Matrix4x4.Multiply(PGet, invPgetOC);
         }
 
         /// <summary>

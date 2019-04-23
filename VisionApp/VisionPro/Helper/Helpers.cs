@@ -64,37 +64,36 @@ namespace VisionApp.VisionPro
         /// <param name="listAutoCalibPointsRB"></param>
         /// <param name="transformMatrixPOROV"></param>
         /// <returns></returns>
-        public static List<PointWithTheta> CalTransRobotToOCam(List<PointWithTheta> listAutoCalibPointsRB, Matrix4x4 transformMatrixPOROVInv, Matrix4x4 transformMatrixBASE)
+        public static List<PointWithTheta> CalTransRobotToOCam(List<PointWithTheta> listAutoCalibPointsRB, Matrix4x4 transMatrixPOROV, Matrix4x4 transformMatrixBASE)
         {
+            Matrix4x4 transMatrixPOROV_Inv;
+            Matrix4x4.Invert(transMatrixPOROV, out transMatrixPOROV_Inv);
             List<PointWithTheta> tempReturnListPoints = new List<PointWithTheta>();
             for (int i = 0; i < listAutoCalibPointsRB.Count; i++)
             {
-                tempReturnListPoints.Add(TransRobotToCam(listAutoCalibPointsRB[i], transformMatrixPOROVInv, transformMatrixBASE));
+                tempReturnListPoints.Add(TransRobotToCam(listAutoCalibPointsRB[i], transMatrixPOROV_Inv, transformMatrixBASE));
             }
             return tempReturnListPoints;
         }
 
         /// <summary>
-        /// P_VisionCal = P_GetOC*P_Base
-        /// P_VisionCal = P_Get * P_OROC^-1 * P_Base
+        /// P_VisionCal = POROC^-1 * PGET * PBASE
         /// </summary>
         /// <param name="pointWithTheta"></param>
-        /// <param name="transformMatrixPOROVInv"></param>
-        /// <param name="transformMatrixBASE"></param>
+        /// <param name="transMatrixPOROV_Inv"></param>
+        /// <param name="transMatrixBASE"></param>
         /// <returns></returns>
-        private static PointWithTheta TransRobotToCam(PointWithTheta pointWithTheta, Matrix4x4 transformMatrixPOROVInv, Matrix4x4 transformMatrixBASE)
+        private static PointWithTheta TransRobotToCam(PointWithTheta pointWithTheta, Matrix4x4 transMatrixPOROV_Inv, Matrix4x4 transMatrixBASE)
         {
             float tempX = pointWithTheta.X;
             float tempY = pointWithTheta.Y;
             float tempTheta = pointWithTheta.Theta;
-            float tempOffX = (float)((Math.Cos(tempTheta)) * tempX - (Math.Sin(tempTheta)) * tempY);
-            float tempOffY = (float)((Math.Sin(tempTheta)) * tempX + (Math.Cos(tempTheta)) * tempY);
-            Matrix4x4 inputMatrix = new Matrix4x4((float)Math.Cos(tempTheta), (float)-Math.Sin(tempTheta), 0, tempX,
+            Matrix4x4 PGET = new Matrix4x4((float)Math.Cos(tempTheta), (float)-Math.Sin(tempTheta), 0, tempX,
                                                   (float)Math.Sin(tempTheta), (float)Math.Cos(tempTheta), 0, tempY,
                                                   0, 0, 1, 0,
                                                   0, 0, 0, 1);
-            Matrix4x4 outputMatrix = Matrix4x4.Multiply(transformMatrixPOROVInv, transformMatrixBASE);
-            outputMatrix = Matrix4x4.Multiply(inputMatrix, outputMatrix);
+            Matrix4x4 outputMatrix = Matrix4x4.Multiply(transMatrixPOROV_Inv, PGET);
+            outputMatrix = Matrix4x4.Multiply(outputMatrix, transMatrixBASE);
             PointWithTheta outputPoint = new PointWithTheta(outputMatrix.M14, outputMatrix.M24, (float)Math.Asin(outputMatrix.M21));
             return outputPoint;
         }
@@ -126,17 +125,15 @@ namespace VisionApp.VisionPro
             float tempX = pointWithTheta.X;
             float tempY = pointWithTheta.Y;
             float tempTheta = pointWithTheta.Theta;
-            float tempOffX = (float)((Math.Cos(tempTheta)) * tempX - (Math.Sin(tempTheta)) * tempY);
-            float tempOffY = (float)((Math.Sin(tempTheta)) * tempX + (Math.Cos(tempTheta)) * tempY);
-            Matrix4x4 inputMatrix = new Matrix4x4((float)Math.Cos(tempTheta), (float)-Math.Sin(tempTheta), 0, tempX,
+            Matrix4x4 PVISION = new Matrix4x4((float)Math.Cos(tempTheta), (float)-Math.Sin(tempTheta), 0, tempX,
                                                   (float)Math.Sin(tempTheta), (float)Math.Cos(tempTheta), 0, tempY,
                                                   0, 0, 1, 0,
                                                   0, 0, 0, 1);
 
             Matrix4x4 PBASE_INV;
             Matrix4x4.Invert(transformTT, out PBASE_INV);
-            Matrix4x4 outputMatrix = Matrix4x4.Multiply(inputMatrix, transformMatrixPOROV);
-            outputMatrix = Matrix4x4.Multiply(PBASE_INV, outputMatrix);
+            Matrix4x4 outputMatrix = Matrix4x4.Multiply(PVISION, PBASE_INV);
+            outputMatrix = Matrix4x4.Multiply(transformMatrixPOROV, outputMatrix);
             PointWithTheta outputPoint = new PointWithTheta(outputMatrix.M14, outputMatrix.M24, (float)Math.Asin(outputMatrix.M21));
             return outputPoint;
         }
