@@ -141,7 +141,6 @@ C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\bin\x64\Debug\Cognex.Vis
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\bin\x64\Debug\Cognex.VisionPro3D.Display.Controls.xml
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\bin\x64\Debug\Cognex.VisionPro.Inspection.xml
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\bin\x64\Debug\Cognex.VisionPro.Database.xml
-C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\VisionApp.csprojAssemblyReference.cache
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\MainWindow.g.cs
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\App.g.cs
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\VisionApp_MarkupCompile.cache
@@ -154,3 +153,4 @@ C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\VisionApp.
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\VisionApp.csproj.CopyComplete
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\VisionApp.exe
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\VisionApp.pdb
+C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\VisionApp.csprojAssemblyReference.cache

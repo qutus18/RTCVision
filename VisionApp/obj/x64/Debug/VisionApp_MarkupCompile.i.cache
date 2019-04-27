@@ -1,20 +1,20 @@
 ﻿VisionApp
 
 
-exe
+winexe
 C#
 .cs
-C:\Users\Admin\source\repos\qutus18\RTCVisionDemo\VisionApp\obj\x64\Debug\
+C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\
 VisionApp
 none
 false
 DEBUG;TRACE
-C:\Users\Admin\source\repos\qutus18\RTCVisionDemo\VisionApp\App.xaml
+C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\App.xaml
 11151548125
 
 301344950683
-341000087557
+35-134865766
 MainWindow.xaml;
 
-True
+False
 

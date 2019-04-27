@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -33,6 +34,7 @@ namespace VisionApp.VisionPro
         {
             ListAutoCalibPointsRB = new List<PointWithTheta>();
             ListAutoCalibPointsCam = new List<PointWithTheta>();
+            CalibNPointToolRBCam = new CogCalibNPointToNPoint();
             PointTransformToolFromNPointCalib = null;
             CalNpointOK = false;
             CalTTMatrixOK = false;
@@ -132,6 +134,68 @@ namespace VisionApp.VisionPro
             PointWithTheta alignPointOCam = Helper.TransPointFromNPoint(PointTransformToolFromNPointCalib, alignPoint);
             TransformTT = TransformTTCal.Calculate(inputPoint, alignPointOCam, TransMatrixPOROV);
             CalTTMatrixOK = true;
+        }
+
+        /// <summary>
+        /// Lưu Tool
+        /// </summary>
+        /// <param name="CameraIndex"></param>
+        public void Save(int CameraIndex)
+        {
+            string[] writeStrings = new string[10];
+            string urlTool = Helper.CreatDirectionAutoCalib(CameraIndex);
+            //
+            if (!Directory.Exists(urlTool)) Directory.CreateDirectory(urlTool);
+            //
+            writeStrings[0] = "RTC Technology - Autocalib Tool";
+            writeStrings[1] = "-------------------------------";
+            writeStrings[2] = $"CalNpointOK,{CalNpointOK}";
+            writeStrings[3] = $"CalTTMatrixOK,{CalTTMatrixOK}";
+            File.WriteAllLines(urlTool + "\\info.txt", writeStrings, Encoding.ASCII);
+            //
+            Cognex.VisionPro.CogSerializer.SaveObjectToFile(CalibNPointToolRBCam, urlTool + "\\CalibNPointToolRBCam.vpp");
+            //
+            Helper.SaveAutoCalibMatrix(urlTool, TransMatrixPBASE, TransformTT, TransMatrixPOROV);
+        }
+
+        /// <summary>
+        /// Load Tool AutoCalib theo CameraIndex
+        /// </summary>
+        /// <param name="CameraIndex"></param>
+        public void Load(int CameraIndex)
+        {
+            string[] writeStrings = new string[10];
+            string urlTool = Helper.CreatDirectionAutoCalib(CameraIndex);
+            // 
+            if (File.Exists(urlTool + "\\info.txt"))
+            {
+                string[] readString = File.ReadAllLines(urlTool + "\\info.txt");
+                foreach (string item in readString)
+                {
+                    if (item.IndexOf("CalNpointOK,") >= 0) CalNpointOK = bool.Parse(item.Split(',')[1]);
+                    if (item.IndexOf("CalTTMatrixOK,") >= 0) CalTTMatrixOK = bool.Parse(item.Split(',')[1]);
+                }
+            }
+            else
+            {
+                CalNpointOK = false;
+                CalTTMatrixOK = false;
+            }
+            //
+            if (CalNpointOK && CalTTMatrixOK)
+            {
+                Matrix4x4[] tempArrMatrix = Helper.LoadAutoCalibMatrix(urlTool);
+                if (tempArrMatrix != null)
+                {
+                    TransMatrixPBASE = tempArrMatrix[0];
+                    TransformTT = tempArrMatrix[1];
+                    TransMatrixPOROV = tempArrMatrix[2];
+                }
+            }
+            //
+            if (File.Exists(urlTool + "\\CalibNPointToolRBCam.vpp"))
+                CalibNPointToolRBCam = (CogCalibNPointToNPoint)Cognex.VisionPro.CogSerializer.LoadObjectFromFile(urlTool + "\\CalibNPointToolRBCam.vpp", typeof(System.Runtime.Serialization.Formatters.Binary.BinaryFormatter), CogSerializationOptionsConstants.All);
+            PointTransformToolFromNPointCalib = CalibNPointToolRBCam.GetComputedUncalibratedFromCalibratedTransform();
         }
     }
 }
