@@ -28,17 +28,65 @@ namespace VisionApp.VisionPro
 			return final;
 		}
 
-		/// <summary>
-		/// float - Tính toán ma trận chuyển đổi tọa độ Robot sang tọa độ Camera
+        public static Matrix4x4 CalPGET_OC(PointWithTheta robotPoint1, PointWithTheta robotPoint2, PointWithTheta camPoint1, PointWithTheta camPoint2)
+        {
+            float x1 = camPoint1.X;
+            float y1 = camPoint1.Y;
+            float x2 = camPoint2.X;
+            float y2 = camPoint2.Y;
+            float thetaGet = robotPoint1.Theta;
+            float thetaGet2 = robotPoint2.Theta;
+
+            float xGetOC = (float)((x1 * Math.Cos((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) + x2 * Math.Cos((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) - 0.2e1 * x1 * Math.Cos((System.Double)(-thetaGet2 + thetaGet)) - 0.2e1 * x2 * Math.Cos((System.Double)(-thetaGet2 + thetaGet)) - 0.2e1 * x1 * Math.Cos((System.Double)(thetaGet2 + thetaGet)) - 0.2e1 * x2 * Math.Cos((System.Double)(thetaGet2 + thetaGet)) + x1 * Math.Cos((System.Double)(2 * thetaGet2)) + x2 * Math.Cos((System.Double)(2 * thetaGet2)) + x1 * Math.Cos((System.Double)(2 * thetaGet)) + x2 * Math.Cos((System.Double)(2 * thetaGet)) - Math.Sin((System.Double)(2 * thetaGet2)) * y1 + y2 * Math.Sin((System.Double)(2 * thetaGet2)) + y1 * Math.Sin((System.Double)(2 * thetaGet)) - Math.Sin((System.Double)(2 * thetaGet)) * y2 + y1 * Math.Sin((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) - y2 * Math.Sin((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) + x1 + x2) / (0.2e1 - 0.4e1 * Math.Cos((System.Double)(-thetaGet2 + thetaGet)) - 0.4e1 * Math.Cos((System.Double)(thetaGet2 + thetaGet)) + 0.2e1 * Math.Cos((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) + 0.2e1 * Math.Cos((System.Double)(2 * thetaGet2)) + 0.2e1 * Math.Cos((System.Double)(2 * thetaGet))));
+            float yGetOC = (float)((y1 * Math.Cos((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) + y2 * Math.Cos((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) - 0.2e1 * y1 * Math.Cos((System.Double)(-thetaGet2 + thetaGet)) - 0.2e1 * y2 * Math.Cos((System.Double)(-thetaGet2 + thetaGet)) - 0.2e1 * y1 * Math.Cos((System.Double)(thetaGet2 + thetaGet)) - 0.2e1 * y2 * Math.Cos((System.Double)(thetaGet2 + thetaGet)) + Math.Cos((System.Double)(2 * thetaGet2)) * y1 + y2 * Math.Cos((System.Double)(2 * thetaGet2)) + y1 * Math.Cos((System.Double)(2 * thetaGet)) + Math.Cos((System.Double)(2 * thetaGet)) * y2 + x1 * Math.Sin((System.Double)(2 * thetaGet2)) - x2 * Math.Sin((System.Double)(2 * thetaGet2)) - x1 * Math.Sin((System.Double)(2 * thetaGet)) + x2 * Math.Sin((System.Double)(2 * thetaGet)) - x1 * Math.Sin((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) + x2 * Math.Sin((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) + y1 + y2) / (0.2e1 - 0.4e1 * Math.Cos((System.Double)(-thetaGet2 + thetaGet)) - 0.4e1 * Math.Cos((System.Double)(thetaGet2 + thetaGet)) + 0.2e1 * Math.Cos((System.Double)(-2 * thetaGet2 + 2 * thetaGet)) + 0.2e1 * Math.Cos((System.Double)(2 * thetaGet2)) + 0.2e1 * Math.Cos((System.Double)(2 * thetaGet))));
+            Matrix4x4 mPGETReturn = new Matrix4x4((float)Math.Cos(thetaGet), (float)-Math.Sin(thetaGet), 0, (float)xGetOC,
+                                            (float)Math.Sin(thetaGet), (float)Math.Cos(thetaGet), 0, (float)yGetOC,
+                                            0, 0, 1, 0,
+                                            0, 0, 0, 1);
+            return mPGETReturn;
+        }
+
+        public static Matrix4x4 CalPBASE(Matrix4x4 mPGETOC, PointWithTheta robotPoint1, PointWithTheta camPoint1)
+        {
+            float x1 = camPoint1.X;
+            float y1 = camPoint1.Y;
+            float thetaGet = robotPoint1.Theta;
+            float xGetOC = mPGETOC.M14;
+            float yGetOC = mPGETOC.M24;
+            float xBase = xBase = (float)((y1 * Math.Sin((System.Double)(2 * thetaGet)) - yGetOC * Math.Sin((System.Double)(2 * thetaGet)) + x1 * Math.Cos((System.Double)(2 * thetaGet)) - xGetOC * Math.Cos((System.Double)(2 * thetaGet)) + x1 - xGetOC) / Math.Cos((System.Double)thetaGet) / 0.2e1);
+            float yBase = (float)(-Math.Sin(thetaGet) * x1 + Math.Cos(thetaGet) * y1 + Math.Sin(thetaGet) * xGetOC - yGetOC * Math.Cos(thetaGet));
+            Matrix4x4 mPBASEReturn = new Matrix4x4( 1, 0, 0, (float)xBase,
+                                                    0, 1, 0, (float)yBase,
+                                                    0, 0, 1, 0,
+                                                    0, 0, 0, 1);
+            return mPBASEReturn;
+        }
+
+        public static Matrix4x4 CalPOROC(PointWithTheta robotpoint1, Matrix4x4 PGetOC)
+        {
+            float tempX = robotpoint1.X;
+            float tempY = robotpoint1.Y;
+            float tempTheta = robotpoint1.Theta;
+            Matrix4x4 PGet = new Matrix4x4((float)Math.Cos(tempTheta), (float)-Math.Sin(tempTheta), 0, (float)tempX,
+                                            (float)Math.Sin(tempTheta), (float)Math.Cos(tempTheta), 0, (float)tempY,
+                                            0, 0, 1, 0,
+                                            0, 0, 0, 1);
+            Matrix4x4 invPgetOC;
+            Matrix4x4.Invert(PGetOC, out invPgetOC);
+            return Matrix4x4.Multiply(PGet, invPgetOC);
+        }
+
+        /// <summary>
+        /// float - Tính toán ma trận chuyển đổi tọa độ Robot sang tọa độ Camera
         /// Từ tọa độ trong hệ Camera + Tọa độ trong hệ Robot => Vector chuyển hệ tọa độ Robot Camera
-		/// </summary>
-		/// <param name="xPG1"></param>
-		/// <param name="yPG1"></param>
-		/// <param name="alpha_PG1"></param>
-		/// <param name="xPG1_OV"></param>
-		/// <param name="yPG1_OV"></param>
-		/// <returns></returns>
-		public static Matrix4x4 CalMatrix(double xPG1, double yPG1, double alpha_PG1, double xPG1_OV, double yPG1_OV)
+        /// </summary>
+        /// <param name="xPG1"></param>
+        /// <param name="yPG1"></param>
+        /// <param name="alpha_PG1"></param>
+        /// <param name="xPG1_OV"></param>
+        /// <param name="yPG1_OV"></param>
+        /// <returns></returns>
+        public static Matrix4x4 CalMatrix(double xPG1, double yPG1, double alpha_PG1, double xPG1_OV, double yPG1_OV)
 		{
 			// Ma trận PGet1
 			Matrix4x4 mPget = new Matrix4x4((float)Math.Cos(alpha_PG1), (float)-Math.Sin(alpha_PG1), 0, (float)xPG1,
@@ -73,6 +121,14 @@ namespace VisionApp.VisionPro
             Matrix4x4 outputMatrix = CalMatrix(pointRB.X, pointRB.Y, pointRB.Theta, PxyGetOV[0], PxyGetOV[1]);
             Matrix4x4.Invert(outputMatrix, out outputMatrixInv);
             return outputMatrixInv;
+        }
+
+        public static Matrix4x4[] CalPBaseAndPOROC(PointWithTheta robotPoint1, PointWithTheta robotPoint2, PointWithTheta camPoint1, PointWithTheta camPoint2)
+        {
+            Matrix4x4 PGetOC = CalPGET_OC(robotPoint1, robotPoint2, camPoint1, camPoint2);
+            Matrix4x4 PBase = CalPBASE(PGetOC, robotPoint1, camPoint1);
+            Matrix4x4 POROC = CalPOROC(robotPoint1, PGetOC);
+            return new Matrix4x4[2] { PBase, POROC };
         }
 	}
 }

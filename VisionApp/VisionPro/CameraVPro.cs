@@ -1,4 +1,5 @@
 ﻿using Cognex.VisionPro;
+
 using Cognex.VisionPro.Display;
 using Cognex.VisionPro.ImageFile;
 using Cognex.VisionPro.PMAlign;
@@ -7,6 +8,9 @@ using System;
 using System.Windows;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Drawing;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace VisionApp.VisionPro
 {
@@ -20,6 +24,7 @@ namespace VisionApp.VisionPro
         public InspectionTool RTCInspectionTool { get; set; }
         public CogDisplay CogDisplayOut { get; set; }
         public bool AutoCalibRunning { get; set; }
+        public int CurrentCameraIndex { get; set; }
         #endregion
 
         public CameraVPro()
@@ -34,6 +39,8 @@ namespace VisionApp.VisionPro
 
             // Khai báo hiển thị đầu ra
             CogDisplayOut = new CogDisplay();
+            
+
 
             // Khai báo tool Align. Mặc định link đầu vào ảnh với Tool Acq
             CogPMAlign = new CogPMAlignEditV2();
@@ -44,7 +51,8 @@ namespace VisionApp.VisionPro
             // Khởi tạo Autocalib
             AutoCalibRunning = false;
 
-            // 
+            // Khởi tạo CameraIndex
+            CurrentCameraIndex = -1;
 
         }
 
@@ -102,17 +110,63 @@ namespace VisionApp.VisionPro
                     }
                     return "TT,1";
                 case "XT":
+                    string tempMessage;
                     PointWithTheta tempPoint = CalculateAlignRB();
                     if (tempPoint != null)
                     {
-                        string tempMessage = Helper.CreatXTMessage(tempPoint);
+                        tempMessage = Helper.CreatXTMessage(tempPoint);
                     }
                     else return "XT,0";
-                    return "XT,1";
+                    return tempMessage;
                 default:
                     break;
             }
             return "HE,1";
+        }
+
+        /// <summary>
+        /// Kiểm tra Camera load xong
+        /// </summary>
+        /// <returns></returns>
+        public bool Loaded()
+        {
+            return (CogAcqFifoEdit.Created && CogCalibGrid.Created && CogPMAlign.Created && CogDisplayOut.Created);
+        }
+
+        public bool TrainPattern()
+        {
+            CogAcqFifoEdit.Subject.Run();
+            // Chụp ảnh, gửi ảnh sang Tool Calib
+            if (CogAcqFifoEdit.Subject.RunStatus.Result != CogToolResultConstants.Accept)
+            {
+                MessageBox.Show(CogAcqFifoEdit.Subject.RunStatus.Exception.Message);
+                return false;
+            }
+            else
+            {
+                CogCalibGrid.Subject.InputImage = CogAcqFifoEdit.Subject.OutputImage;
+            }
+            CogCalibGrid.Subject.Run();
+            // Calib xong gửi ảnh qua Tool Align
+            if (CogCalibGrid.Subject.RunStatus.Result != CogToolResultConstants.Accept)
+            {
+                MessageBox.Show(CogCalibGrid.Subject.RunStatus.Exception.Message);
+                return false;
+            }
+            else
+            {
+                CogPMAlign.Subject.InputImage = CogCalibGrid.Subject.OutputImage;
+            }
+            CogPMAlign.Subject.Pattern.TrainImage = CogCalibGrid.Subject.OutputImage;
+            try
+            {
+                CogPMAlign.Subject.Pattern.Train();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString());
+            }
+            return true;
         }
 
         /// <summary>
@@ -158,8 +212,11 @@ namespace VisionApp.VisionPro
                     float tempY = (float)CogPMAlign.Subject.Results[0].GetPose().TranslationY;
                     float tempTheta = (float)CogPMAlign.Subject.Results[0].GetPose().Rotation;
                     // Trả hiển thị ra CogDisplay
-                    //CogDisplayOut.Image = CogAcqFifoEdit.Subject.OutputImage;
-                    //CogDisplayOut.StaticGraphics.Add(CogPMAlign.Subject.Results[0].CreateResultGraphics(CogPMAlignResultGraphicConstants.CoordinateAxes), "");
+                    App.Current.Dispatcher.BeginInvoke(new Action(delegate
+                    {
+                        CogDisplayOut.Image = CogAcqFifoEdit.Subject.OutputImage;
+                        CogDisplayOut.StaticGraphics.Add(CogPMAlign.Subject.Results[0].CreateResultGraphics(CogPMAlignResultGraphicConstants.CoordinateAxes), "");
+                    }));
                     Console.WriteLine($"{tempX}, {tempY}, {tempTheta}");
                     return new PointWithTheta(tempX, tempY, tempTheta);
                 }
@@ -221,6 +278,7 @@ namespace VisionApp.VisionPro
             }
             else
             {
+                DisplayGraphic();
                 try
                 {
                     float tempX = (float)CogPMAlign.Subject.Results[0].GetPose().TranslationX;
@@ -241,6 +299,122 @@ namespace VisionApp.VisionPro
                 return RTCAutoCalibTool.Trans(outputAlign);
             }
             return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void DisplayGraphic()
+        {
+            App.Current.Dispatcher.BeginInvoke(new Action(delegate
+            {
+                float alignX = -1;
+                float alignY = -1;
+                float rotation = -1;
+                CogDisplayOut.Image = CogAcqFifoEdit.Subject.OutputImage;
+                CogDisplayOut.StaticGraphics.Clear();
+                //
+                if (CogPMAlign.Subject.Results.Count > 0)
+                {
+                    var AlignGraphic = CogPMAlign.Subject.Results[0].CreateResultGraphics(CogPMAlignResultGraphicConstants.CoordinateAxes);
+                    AlignGraphic.Color = CogColorConstants.DarkGreen;
+                    CogDisplayOut.StaticGraphics.Add(AlignGraphic, "");
+                    alignX = (float)CogPMAlign.Subject.Results[0].GetPose().TranslationX;
+                    alignY = (float)CogPMAlign.Subject.Results[0].GetPose().TranslationY;
+                    rotation = (float)CogPMAlign.Subject.Results[0].GetPose().Rotation;
+                    //
+                }
+                // Static Graphic
+                CogLine GraphicTest_X = new CogLine();
+                GraphicTest_X.LineStyle = CogGraphicLineStyleConstants.Solid;
+                GraphicTest_X.X = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationX;
+                GraphicTest_X.Y = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationY;
+                GraphicTest_X.Rotation = 0;
+                CogLine GraphicTest_Y = new CogLine();
+                GraphicTest_Y.LineStyle = CogGraphicLineStyleConstants.Solid;
+                GraphicTest_Y.X = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationX;
+                GraphicTest_Y.Y = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationY;
+                GraphicTest_Y.Rotation = Math.PI / 2;
+                GraphicTest_X.Color = CogColorConstants.DarkRed;
+                GraphicTest_Y.Color = CogColorConstants.DarkRed;
+                CogDisplayOut.StaticGraphics.Add(GraphicTest_X, "Test");
+                CogDisplayOut.StaticGraphics.Add(GraphicTest_Y, "Test");
+                //
+                CogGraphicLabel cogGraphicLabelTest = new CogGraphicLabel();
+                cogGraphicLabelTest.SetXYText(10, 10, $"RTC Camera 0   X = {alignX}  Y = {alignY}   Angle = {rotation}");
+                cogGraphicLabelTest.Font = new Font(FontFamily.GenericSansSerif, 10, System.Drawing.FontStyle.Bold);
+                cogGraphicLabelTest.Color = CogColorConstants.White;
+                cogGraphicLabelTest.BackgroundColor = CogColorConstants.Black;
+                cogGraphicLabelTest.Alignment = CogGraphicLabelAlignmentConstants.TopLeft;
+                CogDisplayOut.StaticGraphics.Add(cogGraphicLabelTest, "Test");
+                // 
+                if (CogPMAlign.Subject.SearchRegion != null)
+                {
+                    var SearchRegion = (CogPMAlign.Subject.SearchRegion.Map(CogPMAlign.Subject.InputImage.GetTransform("@", "."), CogCopyShapeConstants.All) as CogRectangleAffine);
+                    SearchRegion.Color = CogColorConstants.Orange;
+                    CogDisplayOut.StaticGraphics.Add(SearchRegion, "Test");
+                }
+
+
+                CogDisplayOut.Fit();
+            }));
+        }
+
+        /// <summary>
+        /// Lưu Tool Camera theo Index
+        /// </summary>
+        /// <param name="CameraIndex"></param>
+        /// <returns></returns>
+        public bool Save(int CameraIndex)
+        {
+            string[] writeStrings = new string[10];
+            string urlTool = Helper.CreatDirectionCameraVpro(CameraIndex);
+            if (!Directory.Exists(urlTool)) Directory.CreateDirectory(urlTool);
+            try
+            {
+                //
+                Cognex.VisionPro.CogSerializer.SaveObjectToFile(CogAcqFifoEdit.Subject as CogAcqFifoTool, urlTool + "\\CogAcqFifoEdit.vpp");
+                Cognex.VisionPro.CogSerializer.SaveObjectToFile(CogCalibGrid.Subject as CogCalibCheckerboardTool, urlTool + "\\CogCalibGrid.vpp");
+                Cognex.VisionPro.CogSerializer.SaveObjectToFile(CogPMAlign.Subject as CogPMAlignTool, urlTool + "\\CogPMAlign.vpp");
+                //
+                RTCAutoCalibTool.Save(CameraIndex);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Load Camera theo Index
+        /// </summary>
+        /// <param name="CameraIndex"></param>
+        /// <returns></returns>
+        public bool Load(int CameraIndex)
+        {
+            string[] writeStrings = new string[10];
+            string urlTool = Helper.CreatDirectionCameraVpro(CameraIndex);
+            try
+            {
+                CogAcqFifoEdit.Subject = (CogAcqFifoTool)Cognex.VisionPro.CogSerializer.LoadObjectFromFile(urlTool + "\\CogAcqFifoEdit.vpp");
+                CogCalibGrid.Subject = (CogCalibCheckerboardTool)Cognex.VisionPro.CogSerializer.LoadObjectFromFile(urlTool + "\\CogCalibGrid.vpp");
+                CogPMAlign.Subject = (CogPMAlignTool)Cognex.VisionPro.CogSerializer.LoadObjectFromFile(urlTool + "\\CogPMAlign.vpp");
+                RTCAutoCalibTool.Load(CameraIndex);
+                CurrentCameraIndex = CameraIndex;
+                //
+                CogDisplayOut.BackColor = Color.White;
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public void Close()
+        {
+            CogAcqFifoEdit.Dispose();
         }
     }
 }

@@ -162,5 +162,13 @@ namespace VisionApp
             handler.BeginReceive(newstate.buffer, 0, _bufferSize, 0, new AsyncCallback(readCallback), newstate);
         }
 
+        public static void Close()
+        {
+            try
+            {
+                
+            }
+            catch { }
+        }
     }
 }

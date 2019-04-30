@@ -20,6 +20,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using VisionApp.VisionPro;
 
+
 namespace VisionApp
 {
     /// <summary>
@@ -34,11 +35,10 @@ namespace VisionApp
         private List<Socket> tcpListSocketConnect = new List<Socket>();
         private Server myServer;
         private static Boolean isServerBusy = false;
-        private string currentJobUrl = @"E:\#Latus\JobRun\SVI_20182111_1136";
         private StringValueObject settingDisplayCameraInfo;
         private ICommand p_F3Command;
-        private AutoCalibObject autoCalibTool;
         private CameraVPro TestCamera = new CameraVPro();
+        private System.Windows.Threading.DispatcherTimer TimerVision;
 
         public MainWindow()
         {
@@ -57,7 +57,20 @@ namespace VisionApp
         /// </summary>
         private void VisionProInitial()
         {
+            //TestCamera.Load(0);
+            TimerVision = new System.Windows.Threading.DispatcherTimer();
+            TimerVision.Interval = new TimeSpan(0, 0, 5);
+            TimerVision.Tick += LoadCamera;
+            TimerVision.Start();
+        }
 
+        private void LoadCamera(object sender, EventArgs e)
+        {
+            if (TestCamera.Loaded())
+            {
+                TimerVision.Stop();
+                TestCamera.Load(0);
+            }
         }
 
 
@@ -104,19 +117,6 @@ namespace VisionApp
 
             byte[] bytesToSend = Encoding.UTF8.GetBytes(toSend);
             socket.Send(bytesToSend);
-        }
-
-        private void ProcessToEndHandeye()
-        {
-            autoCalibTool.Calculate();
-            if (autoCalibTool.CalibrationStatus == true)
-            {
-                MessageBox.Show("Calibration Done!");
-            }
-            else
-            {
-                MessageBox.Show("Calibration Fail!");
-            }
         }
 
         /// <summary>
@@ -169,21 +169,29 @@ namespace VisionApp
             int value3 = 0;
             switch ((sender as MenuItem).Header)
             {
-                case "Running":
+                case "_Running":
                     value1 = 10; value2 = 0; value3 = 0;
                     break;
-                case "StartUp":
+                case "_StartUp":
                     value1 = 0; value2 = 10; value3 = 0;
                     break;
-                case "Initial":
+                case "_Initial":
                     value1 = 0; value2 = 0; value3 = 10;
                     break;
-                case "Settings":
+                case "_Settings":
                     value1 = 0; value2 = 0; value3 = 10;
                     break;
-                case "RunTest":
+                case "_RunTest":
                     TestCamera.GetNormalAlign();
                     value1 = 0; value2 = 0; value3 = 10;
+                    break;
+                case "_LoadTest":
+                    TestCamera.Load(0);
+                    value1 = 10; value2 = 0; value3 = 0;
+                    break;
+                case "_ColorTest":
+                    wfCogDisplayMain2.Child = TestCamera.CogDisplayOut;
+                    value1 = 10; value2 = 0; value3 = 0;
                     break;
                 default:
                     MessageBox.Show("Wrong Setting! Select Menu Switch");
@@ -194,11 +202,11 @@ namespace VisionApp
             tab3Column.Width = new GridLength(value3, GridUnitType.Star);
         }
 
-		/// <summary>
-		/// Hiển thị control Tab tương ứng 0, 1, 2
-		/// </summary>
-		/// <param name="tabIndex"></param>
-		private void showControlTab(int tabIndex)
+        /// <summary>
+        /// Hiển thị control Tab tương ứng 0, 1, 2
+        /// </summary>
+        /// <param name="tabIndex"></param>
+        private void showControlTab(int tabIndex)
         {
             int value1 = 0;
             int value2 = 0;
@@ -268,6 +276,7 @@ namespace VisionApp
                     // Lưu chương trình Camera hiện tại theo đường dẫn trong currentJobUrl
                     if (MessageBox.Show($"Confirm save current job camera {cameraIndex.Value}?", "Question", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
                     {
+                        TestCamera.Save(0);
                     }
                     break;
                 default:
@@ -288,6 +297,23 @@ namespace VisionApp
         private void BtnTrainInspectionSettings_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
 
+        }
+
+        private void MenuItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            TestCamera.TrainPattern();
+        }
+
+        private void FormMainClosing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Server.Close();
+            TestCamera.Close();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            TimerVision.Start();
+            wfCogDisplayMain1.Child = TestCamera.CogDisplayOut;
         }
 
         /// <summary>

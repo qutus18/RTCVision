@@ -6,8 +6,18 @@
         xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         xmlns:local="clr-namespace:VisionApp"
         mc:Ignorable="d"
-        Title="RTC Align Tool" Height="850" Width="1300" WindowStartupLocation="CenterScreen" Background="#FF4D4D4D" WindowState="Maximized" Icon="Icon/engineer_icon_001.png">
+        Title="RTC Align Tool" Height="850" Width="1300" WindowStartupLocation="CenterScreen" Background="#FF4D4D4D" WindowState="Maximized" Icon="Icon/engineer_icon_001.png" Closing="FormMainClosing" Loaded="Window_Loaded">
     <Window.Resources>
+        <Style x:Key="MenuItemStyle01" TargetType="{x:Type MenuItem}">
+            <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+        </Style>
         <ControlTemplate x:Key="cameraViewTemplate01" TargetType="ContentControl">
             <Grid>
                 <TextBlock Text="123"/>
@@ -35,36 +45,60 @@
     </Window.Resources>
     <Grid Name="gridTotalMain">
         <Grid.RowDefinitions>
-            <RowDefinition Height="25"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="{Binding Value, FallbackValue=20}"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" Background="#FF2E2E2E">
-            <Border BorderThickness="1" BorderBrush="White" Background="White">
-                <Grid>
-                    <Menu Foreground="#FF1D1D1D" Padding="1" FontSize="13" FontWeight="DemiBold">
-                        <MenuItem Header="File" VerticalContentAlignment="Center">
-                            <!--<MenuItem.Icon>
+            <Border BorderThickness="0" BorderBrush="White" Background="White">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Menu Grid.Column="0" Foreground="#FF1D1D1D" Background="White" Padding="1" FontSize="13" FontWeight="DemiBold">
+                            <MenuItem Header="File" VerticalContentAlignment="Center">
+                                <!--<MenuItem.Icon>
                             <Image Source="/VisionApp;component/Icon/engineer_icon_001.png" VerticalAlignment="Center"/>
                         </MenuItem.Icon>-->
-                            <MenuItem Header="Load"/>
-                            <MenuItem Header="Save"/>
-                            <MenuItem Header="Exit" Name="btnMenuExit" PreviewMouseDown="btnMenuExit_PreviewMouseDown"/>
-                        </MenuItem>
-                        <MenuItem Header="Options">
-                            <MenuItem Header="Settings" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-                            <MenuItem Header="Running" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-                            <MenuItem Header="StartUp" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-							<MenuItem Header="Initial" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-							<MenuItem Header="RunTest" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-							<MenuItem Header="TempReadObj" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
-						</MenuItem>
-                        <MenuItem Header="About">
-                            <MenuItem Header="Info" Background="White" PreviewMouseDown="MenuItemRun_PreviewMouseDown"/>
-                        </MenuItem>
-                    </Menu>
-                    <!--<Label Name="lblExit" PreviewMouseDown="lblExit_PreviewMouseDown" Content="X" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="4"  FontWeight="Bold"/>-->
-                </Grid>
+                                <MenuItem Header="_Load" Style="{StaticResource MenuItemStyle01}"/>
+                                <MenuItem Header="_Save" Style="{StaticResource MenuItemStyle01}"/>
+                                <MenuItem Header="_Exit" Style="{StaticResource MenuItemStyle01}" Name="btnMenuExit" PreviewMouseDown="btnMenuExit_PreviewMouseDown"/>
+                            </MenuItem>
+                            <MenuItem Header="Options">
+                                <MenuItem Header="_Settings" Style="{StaticResource MenuItemStyle01}" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="_Running" Style="{StaticResource MenuItemStyle01}" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="_StartUp" Style="{StaticResource MenuItemStyle01}" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="_Initial" Style="{StaticResource MenuItemStyle01}" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="_LoadTest" Style="{StaticResource MenuItemStyle01}" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                                <MenuItem Header="_ColorTest" Style="{StaticResource MenuItemStyle01}" PreviewMouseDown="MenuItemSetting_PreviewMouseDown" Background="White"/>
+                            </MenuItem>
+                            <MenuItem Header="About" PreviewMouseDown="MenuItemRun_PreviewMouseDown">
+                            <!--<MenuItem Header="Info" Style="{StaticResource MenuItemStyle01}" Background="White" PreviewMouseDown="MenuItemRun_PreviewMouseDown"/>-->
+                            </MenuItem>
+                            <MenuItem Header="Train" PreviewMouseDown="MenuItem_PreviewMouseDown">
+                            </MenuItem>
+
+                        </Menu>
+                        <ToolBar Grid.Row="1" Background="White">
+                            <Button Command="Cut" ToolTip="Cut selection to Windows Clipboard.">
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\Icon\icons8_Cameras_32.png" Height="15" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Separator />
+                            <Label>Font size:</Label>
+                            <ComboBox>
+                                <ComboBoxItem>10</ComboBoxItem>
+                                <ComboBoxItem IsSelected="True">12</ComboBoxItem>
+                                <ComboBoxItem>14</ComboBoxItem>
+                                <ComboBoxItem>16</ComboBoxItem>
+                            </ComboBox>
+                        </ToolBar>
+                        <!--<Label Name="lblExit" PreviewMouseDown="lblExit_PreviewMouseDown" Content="X" HorizontalAlignment="Right" VerticalAlignment="Center" VerticalContentAlignment="Center" Padding="4"  FontWeight="Bold"/>-->
+                    </Grid>
+                </DockPanel>
             </Border>
         </Grid>
         <Grid Grid.Row="1">
@@ -80,6 +114,7 @@
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
@@ -103,14 +138,8 @@
                             <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain2" Background="#FF9B9999"/>
                         </Grid>
                     </Border>
-                </Grid>
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
                     <!--Hiển thị Camera 3-->
-                    <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
+                    <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1">
                         <Grid Name="gridCam03" Style="{StaticResource gridCamStyle01}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
@@ -119,14 +148,41 @@
                             <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain3" Background="#FF9B9999"/>
                         </Grid>
                     </Border>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
                     <!--Hiển thị Camera 4-->
-                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1">
+                    <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
                         <Grid Name="gridCam04" Style="{StaticResource gridCamStyle01}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="0"/>
                             </Grid.RowDefinitions>
                             <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain4" Background="#FF9B9999"/>
+                        </Grid>
+                    </Border>
+                    <!--Hiển thị Camera 5-->
+                    <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1">
+                        <Grid Name="gridCam05" Style="{StaticResource gridCamStyle01}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="0"/>
+                            </Grid.RowDefinitions>
+                            <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain5" Background="#FF9B9999"/>
+                        </Grid>
+                    </Border>
+                    <!--Hiển thị Camera 6-->
+                    <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1">
+                        <Grid Name="gridCam06" Style="{StaticResource gridCamStyle01}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="0"/>
+                            </Grid.RowDefinitions>
+                            <WindowsFormsHost Grid.Row="0" x:Name="wfCogDisplayMain6" Background="#FF9B9999"/>
                         </Grid>
                     </Border>
                 </Grid>
@@ -145,9 +201,9 @@
             <Grid Grid.Column="2" Background="#FF394261">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="4.5*"/>
                 </Grid.ColumnDefinitions>
-                <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1">
+                <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="0.1">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="75"/>
@@ -236,7 +292,7 @@
                     </Grid>
                 </Border>
                 <Grid Grid.Column="1">
-                    <Border BorderBrush="Gray" BorderThickness="1">
+                    <Border BorderBrush="Gray" BorderThickness="0.1">
                         <Grid Name="gridSetting" Style="{StaticResource gridCamStyle01}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
@@ -249,7 +305,7 @@
             </Grid>
         </Grid>
         <Grid Grid.Row="2">
-            <Border BorderBrush="Gray" BorderThickness="1">
+            <Border BorderBrush="Gray" BorderThickness="0">
                 <Grid Background="#FF2E2E2E">
                     <TextBox Name="txtLogBox" Text="{Binding Value}" Foreground="White" Background="Transparent" BorderThickness="0"
                                ScrollViewer.VerticalScrollBarVisibility="Auto" VerticalAlignment="Bottom">
