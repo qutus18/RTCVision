@@ -19,7 +19,7 @@ using System.Windows.Shapes;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using VisionApp.VisionPro;
-
+using System.Collections.ObjectModel;
 
 namespace VisionApp
 {
@@ -38,7 +38,9 @@ namespace VisionApp
         private StringValueObject settingDisplayCameraInfo;
         private ICommand p_F3Command;
         private CameraVPro TestCamera = new CameraVPro();
+        private ObservableCollection<CameraVPro> ListCameraVPro = new ObservableCollection<CameraVPro>();
         private System.Windows.Threading.DispatcherTimer TimerVision;
+        private int numberCameraSign;
 
         public MainWindow()
         {
@@ -57,20 +59,36 @@ namespace VisionApp
         /// </summary>
         private void VisionProInitial()
         {
+            // Khởi tạo List Camera 
+            for (int i = 0; i < numberCameraSign; i++)
+            {
+                ListCameraVPro.Add(new CameraVPro());
+            }
+            wfCogDisplayMain1.Child = ListCameraVPro[0].CogDisplayOut;
+            wfCogDisplayMain2.Child = ListCameraVPro[1].CogDisplayOut;
+            cbbCameraList.ItemsSource = ListCameraVPro;
+
             //TestCamera.Load(0);
             TimerVision = new System.Windows.Threading.DispatcherTimer();
-            TimerVision.Interval = new TimeSpan(0, 0, 5);
+            TimerVision.Interval = new TimeSpan(0, 0, 10);
             TimerVision.Tick += LoadCamera;
             TimerVision.Start();
         }
 
         private void LoadCamera(object sender, EventArgs e)
         {
-            if (TestCamera.Loaded())
+            // Load Camera Test
+            TimerVision.Stop();
+            //if (TestCamera.Loaded())
+            //{
+            //    TestCamera.Load(8);
+            //}
+            // Load List Camera
+            for (int i = 0; i < numberCameraSign; i++)
             {
-                TimerVision.Stop();
-                TestCamera.Load(0);
+                ListCameraVPro[i].Load(i);
             }
+
         }
 
 
@@ -113,7 +131,7 @@ namespace VisionApp
         private void ProcessClientCommand(string rev, Socket socket)
         {
             string tempS = $"Time: {DateTime.Now.ToLongTimeString()} - Receive cmd = {rev}, from client = {socket.RemoteEndPoint}\r\n";
-            string toSend = TestCamera.Command(rev) + " Received!\r\n";
+            string toSend = ListCameraVPro[0].Command(rev) + " Received!\r\n";
 
             byte[] bytesToSend = Encoding.UTF8.GetBytes(toSend);
             socket.Send(bytesToSend);
@@ -138,8 +156,8 @@ namespace VisionApp
             btnViewLog.DataContext = strViewButton;
             // Hộp hiển thị Log
             txtLogBox.DataContext = logString;
-            // Số thứ tự Camera Setting hiện tại
-            lblCameraIndex.DataContext = cameraIndex;
+            // Số lượng Camera Setting 
+            numberCameraSign = Settings.Default.NumberCamera;
 
             tab1Column.Width = new GridLength(10000, GridUnitType.Star);
             tab2Column.Width = new GridLength(1, GridUnitType.Star);
@@ -169,9 +187,6 @@ namespace VisionApp
             int value3 = 0;
             switch ((sender as MenuItem).Header)
             {
-                case "_Running":
-                    value1 = 10; value2 = 0; value3 = 0;
-                    break;
                 case "_StartUp":
                     value1 = 0; value2 = 10; value3 = 0;
                     break;
@@ -182,7 +197,7 @@ namespace VisionApp
                     value1 = 0; value2 = 0; value3 = 10;
                     break;
                 case "_RunTest":
-                    TestCamera.GetNormalAlign();
+                    ListCameraVPro[0].GetNormalAlign();
                     value1 = 0; value2 = 0; value3 = 10;
                     break;
                 case "_LoadTest":
@@ -252,14 +267,14 @@ namespace VisionApp
             {
                 case ("btnSettingCameraInitial"):
                     //MessageBox.Show((sender as Button).Name);
-                    wfSettingPanel.Child = TestCamera.CogAcqFifoEdit as System.Windows.Forms.Control;
+                    wfSettingPanel.Child = ListCameraVPro[0].CogAcqFifoEdit as System.Windows.Forms.Control;
                     ChangeSettingsSmallGrid("Camera");
                     break;
                 case ("btnSettingCalib"):
-                    wfSettingPanel.Child = TestCamera.CogCalibGrid as System.Windows.Forms.Control;
+                    wfSettingPanel.Child = ListCameraVPro[0].CogCalibGrid as System.Windows.Forms.Control;
                     break;
                 case ("btnSettingAlign"):
-                    wfSettingPanel.Child = TestCamera.CogPMAlign as System.Windows.Forms.Control;
+                    wfSettingPanel.Child = ListCameraVPro[0].CogPMAlign as System.Windows.Forms.Control;
                     ChangeSettingsSmallGrid("Align");
                     break;
                 case ("btnSettingInspection"):
@@ -276,7 +291,7 @@ namespace VisionApp
                     // Lưu chương trình Camera hiện tại theo đường dẫn trong currentJobUrl
                     if (MessageBox.Show($"Confirm save current job camera {cameraIndex.Value}?", "Question", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
                     {
-                        TestCamera.Save(0);
+                        ListCameraVPro[0].Save(0);
                     }
                     break;
                 default:
@@ -286,7 +301,7 @@ namespace VisionApp
 
         private void MenuItemRun_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            TestCamera.GetNormalAlign();
+            ListCameraVPro[0].GetNormalAlign();
         }
 
         private void radioModeImagebtn_MouseDown(object sender, MouseButtonEventArgs e)
@@ -301,19 +316,23 @@ namespace VisionApp
 
         private void MenuItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            TestCamera.TrainPattern();
+            ListCameraVPro[0].TrainPattern();
         }
 
         private void FormMainClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            wfCogDisplayMain1.Child = null;
             Server.Close();
-            TestCamera.Close();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             TimerVision.Start();
-            wfCogDisplayMain1.Child = TestCamera.CogDisplayOut;
+        }
+
+        private void BtnHomeMain_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            showControlTab(0);
         }
 
         /// <summary>

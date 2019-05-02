@@ -14,7 +14,7 @@ using System.Windows.Threading;
 
 namespace VisionApp.VisionPro
 {
-    public class CameraVPro
+    public class CameraVPro : ObservableObject
     {
         #region Khai báo
         public CogAcqFifoEditV2 CogAcqFifoEdit { get; set; }
@@ -24,7 +24,16 @@ namespace VisionApp.VisionPro
         public InspectionTool RTCInspectionTool { get; set; }
         public CogDisplay CogDisplayOut { get; set; }
         public bool AutoCalibRunning { get; set; }
-        public int CurrentCameraIndex { get; set; }
+        private int currentCameraIndex;
+        public int CurrentCameraIndex
+        {
+            get { return currentCameraIndex; }
+            set
+            {
+                currentCameraIndex = value;
+                OnPropertyChanged("CurrentCameraIndex");
+            }
+        }
         #endregion
 
         public CameraVPro()
@@ -39,7 +48,7 @@ namespace VisionApp.VisionPro
 
             // Khai báo hiển thị đầu ra
             CogDisplayOut = new CogDisplay();
-            
+
 
 
             // Khai báo tool Align. Mặc định link đầu vào ảnh với Tool Acq
@@ -52,7 +61,7 @@ namespace VisionApp.VisionPro
             AutoCalibRunning = false;
 
             // Khởi tạo CameraIndex
-            CurrentCameraIndex = -1;
+            currentCameraIndex = -1;
 
         }
 
@@ -393,17 +402,22 @@ namespace VisionApp.VisionPro
         /// <returns></returns>
         public bool Load(int CameraIndex)
         {
+            currentCameraIndex = CameraIndex;
             string[] writeStrings = new string[10];
             string urlTool = Helper.CreatDirectionCameraVpro(CameraIndex);
+            if (!Directory.Exists(urlTool)) CopyTemplateCamera(urlTool);
             try
             {
                 CogAcqFifoEdit.Subject = (CogAcqFifoTool)Cognex.VisionPro.CogSerializer.LoadObjectFromFile(urlTool + "\\CogAcqFifoEdit.vpp");
                 CogCalibGrid.Subject = (CogCalibCheckerboardTool)Cognex.VisionPro.CogSerializer.LoadObjectFromFile(urlTool + "\\CogCalibGrid.vpp");
                 CogPMAlign.Subject = (CogPMAlignTool)Cognex.VisionPro.CogSerializer.LoadObjectFromFile(urlTool + "\\CogPMAlign.vpp");
                 RTCAutoCalibTool.Load(CameraIndex);
-                CurrentCameraIndex = CameraIndex;
+                currentCameraIndex = CameraIndex;
                 //
-                CogDisplayOut.BackColor = Color.White;
+                CogDisplayOut.BackColor = System.Drawing.ColorTranslator.FromHtml("#FF394261");
+                CogDisplayOut.HorizontalScrollBar = false;
+                CogDisplayOut.VerticalScrollBar = false;
+
             }
             catch
             {
@@ -412,8 +426,27 @@ namespace VisionApp.VisionPro
             return true;
         }
 
+        /// <summary>
+        /// Copy thư mục camera template sang thư mục camera index
+        /// </summary>
+        /// <param name="urlTool"></param>
+        private void CopyTemplateCamera(string urlTool)
+        {
+            string templateUrl = Settings.Default.UrlTemplate;
+            //Now Create all of the directories
+            foreach (string dirPath in Directory.GetDirectories(templateUrl, "*",
+                SearchOption.AllDirectories))
+                Directory.CreateDirectory(dirPath.Replace(templateUrl, urlTool));
+
+            //Copy all the files & Replaces any files with the same name
+            foreach (string newPath in Directory.GetFiles(templateUrl, "*.*",
+                SearchOption.AllDirectories))
+                File.Copy(newPath, newPath.Replace(templateUrl, urlTool), true);
+        }
+
         public void Close()
         {
+            CogAcqFifoEdit.Subject.Dispose();
             CogAcqFifoEdit.Dispose();
         }
     }

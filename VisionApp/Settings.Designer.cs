@@ -22,5 +22,29 @@ namespace VisionApp {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8")]
+        public int NumberCamera {
+            get {
+                return ((int)(this["NumberCamera"]));
+            }
+            set {
+                this["NumberCamera"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("D:\\VProTool\\RTCTemplate")]
+        public string UrlTemplate {
+            get {
+                return ((string)(this["UrlTemplate"]));
+            }
+            set {
+                this["UrlTemplate"] = value;
+            }
+        }
     }
 }

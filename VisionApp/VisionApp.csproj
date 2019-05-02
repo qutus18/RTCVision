@@ -291,6 +291,16 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="icons8_Play.ico" />
+    <Resource Include="icons8_Video_Call.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="icons8_House.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Full Screen_50px.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.3\build\netstandard2.0\NETStandard.Library.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
