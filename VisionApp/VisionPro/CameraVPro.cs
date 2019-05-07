@@ -25,6 +25,9 @@ namespace VisionApp.VisionPro
         public CogDisplay CogDisplayOut { get; set; }
         public bool AutoCalibRunning { get; set; }
         private int currentCameraIndex;
+        public delegate void DoubleClickDelegate(int index);
+        public event DoubleClickDelegate DoubleClickDisplayEvent;
+
         public int CurrentCameraIndex
         {
             get { return currentCameraIndex; }
@@ -48,8 +51,7 @@ namespace VisionApp.VisionPro
 
             // Khai báo hiển thị đầu ra
             CogDisplayOut = new CogDisplay();
-
-
+            CogDisplayOut.DoubleClick += ProcessDoubleClickDisplay;
 
             // Khai báo tool Align. Mặc định link đầu vào ảnh với Tool Acq
             CogPMAlign = new CogPMAlignEditV2();
@@ -63,6 +65,11 @@ namespace VisionApp.VisionPro
             // Khởi tạo CameraIndex
             currentCameraIndex = -1;
 
+        }
+
+        private void ProcessDoubleClickDisplay(object sender, EventArgs e)
+        {
+            if (DoubleClickDisplayEvent != null) DoubleClickDisplayEvent(currentCameraIndex);
         }
 
         /// <summary>
@@ -148,7 +155,7 @@ namespace VisionApp.VisionPro
             // Chụp ảnh, gửi ảnh sang Tool Calib
             if (CogAcqFifoEdit.Subject.RunStatus.Result != CogToolResultConstants.Accept)
             {
-                MessageBox.Show(CogAcqFifoEdit.Subject.RunStatus.Exception.Message);
+                //MessageBox.Show(CogAcqFifoEdit.Subject.RunStatus.Exception.Message);
                 return false;
             }
             else
@@ -315,12 +322,13 @@ namespace VisionApp.VisionPro
         /// </summary>
         private void DisplayGraphic()
         {
-            App.Current.Dispatcher.BeginInvoke(new Action(delegate
+            App.Current.Dispatcher.Invoke(new Action(delegate
             {
                 float alignX = -1;
                 float alignY = -1;
                 float rotation = -1;
                 CogDisplayOut.Image = CogAcqFifoEdit.Subject.OutputImage;
+                if (CogAcqFifoEdit.Subject.OutputImage == null) CogDisplayOut.Image = new CogImage8Grey(2592, 1944);
                 CogDisplayOut.StaticGraphics.Clear();
                 //
                 if (CogPMAlign.Subject.Results.Count > 0)
@@ -332,25 +340,25 @@ namespace VisionApp.VisionPro
                     alignY = (float)CogPMAlign.Subject.Results[0].GetPose().TranslationY;
                     rotation = (float)CogPMAlign.Subject.Results[0].GetPose().Rotation;
                     //
+                    // Static Graphic
+                    CogLine GraphicTest_X = new CogLine();
+                    GraphicTest_X.LineStyle = CogGraphicLineStyleConstants.Solid;
+                    GraphicTest_X.X = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationX;
+                    GraphicTest_X.Y = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationY;
+                    GraphicTest_X.Rotation = 0;
+                    CogLine GraphicTest_Y = new CogLine();
+                    GraphicTest_Y.LineStyle = CogGraphicLineStyleConstants.Solid;
+                    GraphicTest_Y.X = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationX;
+                    GraphicTest_Y.Y = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationY;
+                    GraphicTest_Y.Rotation = Math.PI / 2;
+                    GraphicTest_X.Color = CogColorConstants.DarkRed;
+                    GraphicTest_Y.Color = CogColorConstants.DarkRed;
+                    CogDisplayOut.StaticGraphics.Add(GraphicTest_X, "Test");
+                    CogDisplayOut.StaticGraphics.Add(GraphicTest_Y, "Test");
                 }
-                // Static Graphic
-                CogLine GraphicTest_X = new CogLine();
-                GraphicTest_X.LineStyle = CogGraphicLineStyleConstants.Solid;
-                GraphicTest_X.X = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationX;
-                GraphicTest_X.Y = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationY;
-                GraphicTest_X.Rotation = 0;
-                CogLine GraphicTest_Y = new CogLine();
-                GraphicTest_Y.LineStyle = CogGraphicLineStyleConstants.Solid;
-                GraphicTest_Y.X = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationX;
-                GraphicTest_Y.Y = CogCalibGrid.Subject.Calibration.GetComputedUncalibratedFromCalibratedTransform().LinearTransform(0, 0).TranslationY;
-                GraphicTest_Y.Rotation = Math.PI / 2;
-                GraphicTest_X.Color = CogColorConstants.DarkRed;
-                GraphicTest_Y.Color = CogColorConstants.DarkRed;
-                CogDisplayOut.StaticGraphics.Add(GraphicTest_X, "Test");
-                CogDisplayOut.StaticGraphics.Add(GraphicTest_Y, "Test");
                 //
                 CogGraphicLabel cogGraphicLabelTest = new CogGraphicLabel();
-                cogGraphicLabelTest.SetXYText(10, 10, $"RTC Camera 0   X = {alignX}  Y = {alignY}   Angle = {rotation}");
+                cogGraphicLabelTest.SetXYText(10, 10, $"RTC Camera {currentCameraIndex}   X = {alignX}  Y = {alignY}   Angle = {rotation}");
                 cogGraphicLabelTest.Font = new Font(FontFamily.GenericSansSerif, 10, System.Drawing.FontStyle.Bold);
                 cogGraphicLabelTest.Color = CogColorConstants.White;
                 cogGraphicLabelTest.BackgroundColor = CogColorConstants.Black;
@@ -363,7 +371,6 @@ namespace VisionApp.VisionPro
                     SearchRegion.Color = CogColorConstants.Orange;
                     CogDisplayOut.StaticGraphics.Add(SearchRegion, "Test");
                 }
-
 
                 CogDisplayOut.Fit();
             }));
@@ -417,10 +424,13 @@ namespace VisionApp.VisionPro
                 CogDisplayOut.BackColor = System.Drawing.ColorTranslator.FromHtml("#FF394261");
                 CogDisplayOut.HorizontalScrollBar = false;
                 CogDisplayOut.VerticalScrollBar = false;
-
+                DisplayGraphic();
+                Helper.WriteLogString($"Load Camera {CameraIndex}");
+                Console.WriteLine($"Load Camera {CameraIndex}");
             }
             catch
             {
+                Console.WriteLine($"Fail Load Camera {CameraIndex}");
                 return false;
             }
             return true;
@@ -448,6 +458,16 @@ namespace VisionApp.VisionPro
         {
             CogAcqFifoEdit.Subject.Dispose();
             CogAcqFifoEdit.Dispose();
+        }
+
+        public void LiveView()
+        {
+            CogDisplayOut.StartLiveDisplay(CogAcqFifoEdit.Subject.Operator, true);
+        }
+
+        public void StopLiveView()
+        {
+            CogDisplayOut.StopLiveDisplay();
         }
     }
 }

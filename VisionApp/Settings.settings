@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="NumberCamera" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">8</Value>
+      <Value Profile="(Default)">9</Value>
     </Setting>
     <Setting Name="UrlTemplate" Type="System.String" Scope="User">
       <Value Profile="(Default)">D:\VProTool\RTCTemplate</Value>

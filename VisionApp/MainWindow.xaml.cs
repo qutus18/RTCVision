@@ -28,7 +28,7 @@ namespace VisionApp
     /// </summary>
     public partial class MainWindow : Window
     {
-        private StringValueObject strViewButton, logString;
+        public static StringValueObject strViewButton, logString;
         private CameraIndex cameraIndex;
         private IntValueObject logPanelHeight, intSettingButtonStage;
         private Thread socketThread;
@@ -41,6 +41,8 @@ namespace VisionApp
         private ObservableCollection<CameraVPro> ListCameraVPro = new ObservableCollection<CameraVPro>();
         private System.Windows.Threading.DispatcherTimer TimerVision;
         private int numberCameraSign;
+        private int _currentCameraSelected = 0;
+        private bool _liveView = false;
 
         public MainWindow()
         {
@@ -63,16 +65,24 @@ namespace VisionApp
             for (int i = 0; i < numberCameraSign; i++)
             {
                 ListCameraVPro.Add(new CameraVPro());
+                ListCameraVPro[i].DoubleClickDisplayEvent += ChangeDisplayInDoubleClick;
             }
-            wfCogDisplayMain1.Child = ListCameraVPro[0].CogDisplayOut;
-            wfCogDisplayMain2.Child = ListCameraVPro[1].CogDisplayOut;
+            //wfCogDisplayMain1.Child = ListCameraVPro[0].CogDisplayOut;
+            //wfCogDisplayMain2.Child = ListCameraVPro[1].CogDisplayOut;
             cbbCameraList.ItemsSource = ListCameraVPro;
+            cbbCameraList.SelectionChanged += CbbCameraList_SelectionChanged;
+            cbbCameraList.SelectedIndex = 0;
 
             //TestCamera.Load(0);
             TimerVision = new System.Windows.Threading.DispatcherTimer();
             TimerVision.Interval = new TimeSpan(0, 0, 10);
             TimerVision.Tick += LoadCamera;
             TimerVision.Start();
+        }
+
+        private void ChangeDisplayInDoubleClick(int index)
+        {
+            cbbCameraList.SelectedIndex = index;
         }
 
         private void LoadCamera(object sender, EventArgs e)
@@ -131,8 +141,12 @@ namespace VisionApp
         private void ProcessClientCommand(string rev, Socket socket)
         {
             string tempS = $"Time: {DateTime.Now.ToLongTimeString()} - Receive cmd = {rev}, from client = {socket.RemoteEndPoint}\r\n";
-            string toSend = ListCameraVPro[0].Command(rev) + " Received!\r\n";
-
+            string[] tempSarr = rev.Split(',');
+            int getCameraIndex = -1;
+            int.TryParse(tempSarr[1], out getCameraIndex);
+            string toSend = "Err Command" + " Received!\r\n";
+            if ((getCameraIndex >= 0) && (getCameraIndex < 9))
+                toSend = ListCameraVPro[getCameraIndex].Command(rev) + " Received!\r\n";
             byte[] bytesToSend = Encoding.UTF8.GetBytes(toSend);
             socket.Send(bytesToSend);
         }
@@ -197,7 +211,7 @@ namespace VisionApp
                     value1 = 0; value2 = 0; value3 = 10;
                     break;
                 case "_RunTest":
-                    ListCameraVPro[0].GetNormalAlign();
+                    ListCameraVPro[_currentCameraSelected].GetNormalAlign();
                     value1 = 0; value2 = 0; value3 = 10;
                     break;
                 case "_LoadTest":
@@ -267,14 +281,14 @@ namespace VisionApp
             {
                 case ("btnSettingCameraInitial"):
                     //MessageBox.Show((sender as Button).Name);
-                    wfSettingPanel.Child = ListCameraVPro[0].CogAcqFifoEdit as System.Windows.Forms.Control;
+                    wfSettingPanel.Child = ListCameraVPro[_currentCameraSelected].CogAcqFifoEdit as System.Windows.Forms.Control;
                     ChangeSettingsSmallGrid("Camera");
                     break;
                 case ("btnSettingCalib"):
-                    wfSettingPanel.Child = ListCameraVPro[0].CogCalibGrid as System.Windows.Forms.Control;
+                    wfSettingPanel.Child = ListCameraVPro[_currentCameraSelected].CogCalibGrid as System.Windows.Forms.Control;
                     break;
                 case ("btnSettingAlign"):
-                    wfSettingPanel.Child = ListCameraVPro[0].CogPMAlign as System.Windows.Forms.Control;
+                    wfSettingPanel.Child = ListCameraVPro[_currentCameraSelected].CogPMAlign as System.Windows.Forms.Control;
                     ChangeSettingsSmallGrid("Align");
                     break;
                 case ("btnSettingInspection"):
@@ -291,7 +305,7 @@ namespace VisionApp
                     // Lưu chương trình Camera hiện tại theo đường dẫn trong currentJobUrl
                     if (MessageBox.Show($"Confirm save current job camera {cameraIndex.Value}?", "Question", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
                     {
-                        ListCameraVPro[0].Save(0);
+                        ListCameraVPro[_currentCameraSelected].Save(_currentCameraSelected);
                     }
                     break;
                 default:
@@ -301,7 +315,7 @@ namespace VisionApp
 
         private void MenuItemRun_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            ListCameraVPro[0].GetNormalAlign();
+            ListCameraVPro[_currentCameraSelected].GetNormalAlign();
         }
 
         private void radioModeImagebtn_MouseDown(object sender, MouseButtonEventArgs e)
@@ -316,7 +330,7 @@ namespace VisionApp
 
         private void MenuItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            ListCameraVPro[0].TrainPattern();
+            ListCameraVPro[_currentCameraSelected].TrainPattern();
         }
 
         private void FormMainClosing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -333,6 +347,63 @@ namespace VisionApp
         private void BtnHomeMain_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             showControlTab(0);
+        }
+
+        /// <summary>
+        /// Đổi Camera Index
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CbbCameraList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _currentCameraSelected = (sender as ComboBox).SelectedIndex;
+            ReloadViewCamera();
+        }
+
+        private void ReloadViewCamera()
+        {
+            showControlTab(0);
+            int tempIndex = 0;
+            // Hiển thị Camera chính
+            wfCogDisplayMain1.Child = ListCameraVPro[_currentCameraSelected].CogDisplayOut;
+            // Hiển thị các Camera phụ
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain2.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+            tempIndex += 1;
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain3.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+            tempIndex += 1;
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain4.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+            tempIndex += 1;
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain5.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+            tempIndex += 1;
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain6.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+            tempIndex += 1;
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain7.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+            tempIndex += 1;
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain8.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+            tempIndex += 1;
+            if (tempIndex == _currentCameraSelected) tempIndex += 1;
+            if (tempIndex < ListCameraVPro.Count) wfCogDisplayMain9.Child = ListCameraVPro[tempIndex].CogDisplayOut;
+        }
+
+        private void BtnLiveView_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (!_liveView)
+            {
+                _liveView = true;
+                ListCameraVPro[0].LiveView();
+            }
+            else
+            {
+                ListCameraVPro[0].StopLiveView();
+                _liveView = false;
+            }
         }
 
         /// <summary>

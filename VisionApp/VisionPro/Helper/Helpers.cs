@@ -301,5 +301,13 @@ namespace VisionApp.VisionPro
             Dispatcher.PushFrame(frame); // start the secondary dispatcher, pausing this code
             return didWait;
         }
+
+        public static void WriteLogString(string inputString)
+        {
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(delegate
+            {
+                MainWindow.logString.Value += inputString + "\r\n";
+            }));
+        }
     }
 }

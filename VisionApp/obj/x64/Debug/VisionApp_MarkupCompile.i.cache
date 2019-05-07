@@ -1,7 +1,7 @@
 ﻿VisionApp
 
 
-winexe
+exe
 C#
 .cs
 C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\obj\x64\Debug\
@@ -16,5 +16,5 @@ C:\Users\Admin\Source\Repos\qutus18\RTCVision\VisionApp\App.xaml
 35-134865766
 MainWindow.xaml;
 
-False
+True
 
